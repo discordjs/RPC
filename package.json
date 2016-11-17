@@ -1,6 +1,6 @@
 {
   "name": "discord-rpc",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "src/index.js",
   "repository": {
@@ -14,6 +14,7 @@
   },
   "homepage": "https://github.com/GusCaplan/discord-rpc#readme",
   "dependencies": {
+    "lodash": "^4.17.2",
     "superagent": "^2.3.0",
     "uuid": "^2.0.3",
     "ws": "^1.1.1"
