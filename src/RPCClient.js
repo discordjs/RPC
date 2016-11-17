@@ -29,7 +29,7 @@ class RPCClient {
     this.rest = new RESTClient(this);
   }
 
-  connect (tries = 0, accessToken = this.accessToken) {
+  connect (accessToken = this.accessToken, tries = 0) {
     if (this.connected) {
       return;
     }
@@ -197,7 +197,7 @@ class RPCClient {
     try {
       this.socket.close();
     } catch (e) {}
-    setTimeout(() => this.connect(e.code === 1006 ? ++this.connectionTries : 0), 250);
+    setTimeout(() => this.connect(null, e.code === 1006 ? ++this.connectionTries : 0), 250);
   }
 
   _handleMessage (message) {
