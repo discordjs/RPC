@@ -5,7 +5,7 @@
 
 const EventEmitter = require('events').EventEmitter;
 const { RPCCommands, RPCEvents, RPCErrors } = require('./Constants');
-if (typeof WebSocket === 'undefined') { const WebSocket = require('ws'); }
+if (typeof WebSocket === 'undefined') { const WebSocket = require('ws'); } // eslint-disable-line
 const superagent = require('superagent');
 const uuid = require('uuid').v4;
 const RESTClient = require('./RESTClient');
@@ -31,9 +31,7 @@ class RPCClient {
   }
 
   connect (accessToken = this.accessToken, tries = 0) {
-    if (this.connected) {
-      return;
-    }
+    if (this.connected) return;
     this.accessToken = accessToken;
     const port = 6463 + (tries % 10);
     this.hostAndPort = `${uuid()}.discordapp.io:${port}`;

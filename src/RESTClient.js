@@ -9,7 +9,7 @@ module.exports = class RESTClient {
     return new Promise((resolve, reject) => {
       headers.Authorization = `Bearer ${this.client.accessToken}`;
       superagent[method.toLowerCase()](`https://${this.client.hostAndPort}${path}`)
-      .set(headers).send(body).then(resolve, reject);
+      .set(headers).send(body).then(res => resolve(res.body), reject);
     });
   }
 
