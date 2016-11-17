@@ -6,7 +6,7 @@
 const EventEmitter = require('events').EventEmitter;
 const { RPCCommands, RPCEvents, RPCErrors } = require('./Constants');
 const superagent = require('superagent');
-const uuid = require('uuid');
+const uuid = require('uuid').v4;
 const RESTClient = require('./RESTClient');
 
 function getEventName (cmd, nonce, evt) {
@@ -35,32 +35,27 @@ class RPCClient {
     }
     this.accessToken = accessToken;
     const port = 6463 + (tries % 10);
-    this.hostAndPort = `${uuid.v4()}.discordapp.io:${port}`;
-    this.socket = new WebSocket(`wss://${this.hostAndPort}/?v=1&client_id=${this.OAUTH2_CLIENT_ID}`);
+    this.hostAndPort = `${uuid()}.discordapp.io:${port}`;
+    this.socket = new WebSocket(`wss://${this.hostAndPort}/?v=1&client_id=${this.OAUTH2_CLIENT_ID}`); // eslint-disable-line
     this.socket.onopen = this._handleOpen.bind(this);
     this.socket.onclose = this._handleClose.bind(this);
     this.socket.onmessage = this._handleMessage.bind(this);
   }
 
-  disconnect () {
-    if (!this.connected) {
-      return;
-    }
+  disconnect (callback) {
+    if (!this.connected) return;
     this.requestedDisconnect = true;
     this.socket.close();
+    if (callback) callback();
   }
 
   reconnect () {
-    if (!this.connected) {
-      return;
-    }
+    if (!this.connected) return;
     this.socket.close();
   }
 
   authenticate () {
-    if (this.authenticated) {
-      return;
-    }
+    if (this.authenticated) return;
     if (!this.accessToken) {
       this.authorize();
       return;
@@ -126,7 +121,7 @@ class RPCClient {
         this.queue.push(() => this.request(cmd, args, evt, callback));
         return;
       }
-      const nonce = uuid.v4();
+      const nonce = uuid();
       this.evts.once(getEventName(RPCCommands.DISPATCH, nonce), (err, res) => {
         if (callback) callback(err, res);
         if (err) {
