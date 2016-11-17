@@ -5,6 +5,7 @@
 
 const EventEmitter = require('events').EventEmitter;
 const { RPCCommands, RPCEvents, RPCErrors } = require('./Constants');
+if (typeof WebSocket === 'undefined') { const WebSocket = require('ws'); }
 const superagent = require('superagent');
 const uuid = require('uuid').v4;
 const RESTClient = require('./RESTClient');
