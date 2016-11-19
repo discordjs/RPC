@@ -3,9 +3,9 @@
   Modified by Gus Caplan
 */
 
+const WebSocket = typeof window !== 'undefined' ? window.WebSocket : require('ws'); // eslint-disable-line no-undef
 const EventEmitter = require('events').EventEmitter;
 const { RPCCommands, RPCEvents, RPCErrors } = require('./Constants');
-if (typeof WebSocket === 'undefined') { const WebSocket = require('ws'); } // eslint-disable-line
 const superagent = require('superagent');
 const lodash = require('lodash');
 const uuid = require('uuid').v4;
@@ -212,6 +212,10 @@ class RPCClient {
     } = payload;
 
     if (cmd === RPCCommands.AUTHENTICATE) {
+      if (evt === RPCEvents.ERROR) {
+        this.evts.emit('ERROR', data);
+        return;
+      }
       this.user = data.user;
       this.application = data.application;
       this.evts.emit('READY', data);

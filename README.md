@@ -4,10 +4,15 @@ A simple RPC client for Discord somewhat stolen from the Discord StreamKit.
 
 For the latest changes install via `guscaplan/discord-rpc`
 
-This client is fully tested with browserify, and should work with webpack. It can also be used with regular node apps.
+This client is fully tested with browserify and webpack. It can also be used with regular node apps.
+
+Webpack builds of the beautiful and ugly kind are in `/webpack`
 
 ```js
+// NODE
 const RPCClient = require('discord-rpc').Client;
+// BROWSER
+const RPCClient = window.RPCClient.Client;
 
 const client = new RPCClient({
   OAUTH2_CLIENT_ID: 'xyzxyzxyz'

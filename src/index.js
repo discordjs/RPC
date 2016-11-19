@@ -4,3 +4,5 @@ module.exports = {
   Rest: require('./RESTClient'),
   Constants: require('./Constants')
 }
+
+if (typeof window !== 'undefined') window.RPCClient = module.exports;
