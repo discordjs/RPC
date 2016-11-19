@@ -5,4 +5,4 @@ module.exports = {
   Constants: require('./Constants')
 }
 
-if (typeof window !== 'undefined') window.RPCClient = module.exports;
+if (typeof window !== 'undefined') window.DiscordRPC = module.exports;

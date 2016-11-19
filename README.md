@@ -1,5 +1,11 @@
 ## Discord RPC Client ##
 
+[![npm](https://img.shields.io/npm/v/discord-rpc.svg?maxAge=3600)](https://www.npmjs.com/package/discord-rpc)
+[![npm](https://img.shields.io/npm/dt/discord-rpc.svg?maxAge=3600)](https://www.npmjs.com/package/discord-rpc)
+[![David](https://david-dm.org/guscaplan/discord-rpc.svg)](https://david-dm.org/guscaplan/discord-rpc)
+
+[![NPM](https://nodei.co/npm/discord-rpc.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/discord-rpc/)
+
 A simple RPC client for Discord somewhat stolen from the Discord StreamKit.
 
 For the latest changes install via `guscaplan/discord-rpc`
@@ -12,7 +18,7 @@ Webpack builds of the beautiful and ugly kind are in `/webpack`
 // NODE
 const RPCClient = require('discord-rpc').Client;
 // BROWSER
-const RPCClient = window.RPCClient.Client;
+const RPCClient = window.DiscordRPC.Client;
 
 const client = new RPCClient({
   OAUTH2_CLIENT_ID: 'xyzxyzxyz'
