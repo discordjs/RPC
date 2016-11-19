@@ -70,3 +70,8 @@ module.exports.ChannelTypes = {
   GUILD_TEXT: 0,
   GUILD_VOICE: 2
 };
+
+module.exports.Endpoints = {
+  channelMessages: (cID) => `/channels/${cID}/messages`,
+  channelMessage: (cID, mID) => `/channels/${cID}/messages/${mID}`
+}

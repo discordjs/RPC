@@ -1,4 +1,5 @@
 const superagent = require('superagent');
+const { Endpoints } = require('./Constants');
 
 module.exports = class RESTClient {
   constructor (client) {
@@ -13,15 +14,15 @@ module.exports = class RESTClient {
     });
   }
 
-  sendMessage (channelId, content) {
-    return this.makeRequest('post', `/channels/${channelId}/messages`, { content });
+  sendMessage (channelID, content) {
+    return this.makeRequest('post', Endpoints.channelMessages(channelID), { content });
   }
 
-  editMessage (channelId, messageId, content) {
-    return this.makeRequest('patch', `/channels/${channelId}/messages/${messageId}`, { content });
+  editMessage (channelID, messageID, content) {
+    return this.makeRequest('patch', Endpoints.channelMessage(channelID, messageID), { content });
   }
 
-  deleteMessage (channelId, messageId) {
-    return this.makeRequest('delete', `/channels/${channelId}/messages/${messageId}`);
+  deleteMessage (channelID, messageID) {
+    return this.makeRequest('delete', Endpoints.channelMessage(channelID, messageID));
   }
 }
