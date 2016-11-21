@@ -44,16 +44,15 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
 	module.exports = {
 	  version: __webpack_require__(1).version,
 	  Client: __webpack_require__(2),
 	  Rest: __webpack_require__(16),
 	  Constants: __webpack_require__(5)
-	};
+	}
 
 	if (typeof window !== 'undefined') window.DiscordRPC = module.exports;
+
 
 /***/ },
 /* 1 */
@@ -104,38 +103,25 @@
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 	/*
 	  Stolen from Discord's StreamKit Overlay by ```Macdja38
 	  Modified by Gus Caplan
 	*/
 
-	var WebSocket = typeof window !== 'undefined' ? window.WebSocket : __webpack_require__(3); // eslint-disable-line no-undef
-	var EventEmitter = __webpack_require__(4).EventEmitter;
+	const WebSocket = typeof window !== 'undefined' ? window.WebSocket : __webpack_require__(3); // eslint-disable-line no-undef
+	const EventEmitter = __webpack_require__(4).EventEmitter;
+	const { RPCCommands, RPCEvents, RPCErrors } = __webpack_require__(5);
+	const superagent = __webpack_require__(6);
+	const deepEqual = __webpack_require__(11);
+	const uuid = __webpack_require__(14).v4;
+	const RESTClient = __webpack_require__(16);
 
-	var _require = __webpack_require__(5),
-	    RPCCommands = _require.RPCCommands,
-	    RPCEvents = _require.RPCEvents,
-	    RPCErrors = _require.RPCErrors;
-
-	var superagent = __webpack_require__(6);
-	var deepEqual = __webpack_require__(11);
-	var uuid = __webpack_require__(14).v4;
-	var RESTClient = __webpack_require__(16);
-
-	function getEventName(cmd, nonce, evt) {
-	  return cmd + ':' + (nonce || evt);
+	function getEventName (cmd, nonce, evt) {
+	  return `${cmd}:${nonce || evt}`;
 	}
 
-	var RPCClient = function () {
-	  function RPCClient(options) {
-	    _classCallCheck(this, RPCClient);
-
+	class RPCClient {
+	  constructor (options) {
 	    this.evts = new EventEmitter();
 	    this.activeSubscriptions = [];
 	    this.queue = [];
@@ -150,257 +136,222 @@
 	    this.rest = new RESTClient(this);
 	  }
 
-	  _createClass(RPCClient, [{
-	    key: 'connect',
-	    value: function connect() {
-	      var accessToken = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.accessToken;
-	      var tries = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	  connect (accessToken = this.accessToken, tries = 0) {
+	    if (this.connected) return;
+	    this.accessToken = accessToken;
+	    const port = 6463 + (tries % 10);
+	    this.hostAndPort = `${uuid()}.discordapp.io:${port}`;
+	    this.socket = new WebSocket(`wss://${this.hostAndPort}/?v=1&client_id=${this.OAUTH2_CLIENT_ID}`); // eslint-disable-line
+	    this.socket.onopen = this._handleOpen.bind(this);
+	    this.socket.onclose = this._handleClose.bind(this);
+	    this.socket.onmessage = this._handleMessage.bind(this);
+	  }
 
-	      if (this.connected) return;
-	      this.accessToken = accessToken;
-	      var port = 6463 + tries % 10;
-	      this.hostAndPort = uuid() + '.discordapp.io:' + port;
-	      this.socket = new WebSocket('wss://' + this.hostAndPort + '/?v=1&client_id=' + this.OAUTH2_CLIENT_ID); // eslint-disable-line
-	      this.socket.onopen = this._handleOpen.bind(this);
-	      this.socket.onclose = this._handleClose.bind(this);
-	      this.socket.onmessage = this._handleMessage.bind(this);
-	    }
-	  }, {
-	    key: 'disconnect',
-	    value: function disconnect(callback) {
-	      if (!this.connected) return;
-	      this.requestedDisconnect = true;
-	      this.socket.close();
-	      if (callback) callback();
-	    }
-	  }, {
-	    key: 'reconnect',
-	    value: function reconnect() {
-	      if (!this.connected) return;
-	      this.socket.close();
-	    }
-	  }, {
-	    key: 'authenticate',
-	    value: function authenticate() {
-	      var _this = this;
+	  disconnect (callback) {
+	    if (!this.connected) return;
+	    this.requestedDisconnect = true;
+	    this.socket.close();
+	    if (callback) callback();
+	  }
 
-	      if (this.authenticated) return;
-	      if (!this.accessToken) {
+	  reconnect () {
+	    if (!this.connected) return;
+	    this.socket.close();
+	  }
+
+	  authenticate () {
+	    if (this.authenticated) return;
+	    if (!this.accessToken) {
+	      this.authorize();
+	      return;
+	    }
+	    this.request('AUTHENTICATE', {
+	      access_token: this.accessToken
+	    }, (e, r) => {
+	      if (e && e.code === RPCErrors.INVALID_TOKEN) {
 	        this.authorize();
 	        return;
 	      }
-	      this.request('AUTHENTICATE', {
-	        access_token: this.accessToken
-	      }, function (e, r) {
-	        if (e && e.code === RPCErrors.INVALID_TOKEN) {
-	          _this.authorize();
-	          return;
-	        }
-	        _this.authenticated = true;
-	        _this.flushQueue();
-	        _this.activeSubscriptions.forEach(function (s) {
-	          return _this.subscribe(s.evt, s.args, s.callback);
-	        });
-	      });
-	    }
-	  }, {
-	    key: 'flushQueue',
-	    value: function flushQueue() {
-	      var queue = this.queue;
-	      this.queue = [];
-	      queue.forEach(function (c) {
-	        return c();
-	      });
-	    }
-	  }, {
-	    key: 'authorize',
-	    value: function authorize() {
-	      var _this2 = this;
+	      this.authenticated = true;
+	      this.flushQueue();
+	      this.activeSubscriptions.forEach(s => this.subscribe(s.evt, s.args, s.callback));
+	    });
+	  }
 
-	      if (this.authenticated) return;
-	      superagent.get(this.API_ENDPOINT + '/token').then(function (r) {
+	  flushQueue () {
+	    const queue = this.queue;
+	    this.queue = [];
+	    queue.forEach(c => c());
+	  }
+
+	  authorize () {
+	    if (this.authenticated) return;
+	    superagent
+	      .get(`${this.API_ENDPOINT}/token`)
+	      .then(r => {
 	        if (!r.ok || !r.body.rpc_token) {
 	          throw new Error('no rpc token');
 	        }
-	        return _this2.request('AUTHORIZE', {
-	          client_id: _this2.OAUTH2_CLIENT_ID,
+	        return this.request('AUTHORIZE', {
+	          client_id: this.OAUTH2_CLIENT_ID,
 	          scopes: ['rpc', 'rpc.api'],
 	          rpc_token: r.body.rpc_token
 	        });
-	      }).then(function (r) {
-	        return superagent.post(_this2.API_ENDPOINT + '/token').send({
+	      })
+	      .then(r => superagent
+	        .post(`${this.API_ENDPOINT}/token`)
+	        .send({
 	          code: r.code
-	        });
-	      }).then(function (r) {
+	        })
+	      )
+	      .then(r => {
 	        if (!r.ok) {
 	          throw new Error('no access token');
 	        }
-	        _this2.accessToken = r.body.access_token;
-	        _this2.authenticate();
-	      }).catch(function (e) {
-	        setTimeout(_this2.authorize.bind(_this2), 3000);
+	        this.accessToken = r.body.access_token;
+	        this.authenticate();
+	      })
+	      .catch(e => {
+	        setTimeout(this.authorize.bind(this), 3000);
 	      });
-	    }
-	  }, {
-	    key: 'request',
-	    value: function request(cmd, args, evt, callback) {
-	      var _this3 = this;
+	  }
 
-	      if (typeof evt === 'function') {
-	        callback = evt;
-	        evt = undefined;
+	  request (cmd, args, evt, callback) {
+	    if (typeof evt === 'function') {
+	      callback = evt;
+	      evt = undefined;
+	    }
+	    return new Promise((resolve, reject) => {
+	      if (!this.connected || !this.ready || (!this.authenticated && ['AUTHORIZE', 'AUTHENTICATE'].indexOf(cmd) === -1)) {
+	        this.queue.push(() => this.request(cmd, args, evt, callback));
+	        return;
 	      }
-	      return new Promise(function (resolve, reject) {
-	        if (!_this3.connected || !_this3.ready || !_this3.authenticated && ['AUTHORIZE', 'AUTHENTICATE'].indexOf(cmd) === -1) {
-	          _this3.queue.push(function () {
-	            return _this3.request(cmd, args, evt, callback);
-	          });
-	          return;
+	      const nonce = uuid();
+	      this.evts.once(getEventName(RPCCommands.DISPATCH, nonce), (err, res) => {
+	        if (callback) callback(err, res);
+	        if (err) {
+	          reject(err);
+	        } else {
+	          resolve(res);
 	        }
-	        var nonce = uuid();
-	        _this3.evts.once(getEventName(RPCCommands.DISPATCH, nonce), function (err, res) {
-	          if (callback) callback(err, res);
-	          if (err) {
-	            reject(err);
-	          } else {
-	            resolve(res);
-	          }
+	      });
+	      this.socket.send(JSON.stringify({
+	        cmd,
+	        args,
+	        evt,
+	        nonce
+	      }));
+	    });
+	  }
+
+	  subscribe (evt, args, callback) {
+	    this.request(RPCCommands.SUBSCRIBE, args, evt, error => {
+	      if (error) {
+	        if (callback) callback(error);
+	        return;
+	      }
+	      // on reconnect we resub to events, so don't dup listens
+	      if (!this.activeSubscriptions.find(s => {
+	        return callback === s.callback;
+	      })) {
+	        this.activeSubscriptions.push({
+	          evt,
+	          args,
+	          callback
 	        });
-	        _this3.socket.send(JSON.stringify({
-	          cmd: cmd,
-	          args: args,
-	          evt: evt,
-	          nonce: nonce
-	        }));
-	      });
-	    }
-	  }, {
-	    key: 'subscribe',
-	    value: function subscribe(evt, args, callback) {
-	      var _this4 = this;
+	        this.evts.on(getEventName(RPCCommands.DISPATCH, null, evt), d => { if (callback) callback(null, d); });
+	      }
+	    });
+	  }
 
-	      this.request(RPCCommands.SUBSCRIBE, args, evt, function (error) {
-	        if (error) {
-	          if (callback) callback(error);
-	          return;
-	        }
-	        // on reconnect we resub to events, so don't dup listens
-	        if (!_this4.activeSubscriptions.find(function (s) {
-	          return callback === s.callback;
-	        })) {
-	          _this4.activeSubscriptions.push({
-	            evt: evt,
-	            args: args,
-	            callback: callback
-	          });
-	          _this4.evts.on(getEventName(RPCCommands.DISPATCH, null, evt), function (d) {
-	            if (callback) callback(null, d);
-	          });
-	        }
-	      });
-	    }
-	  }, {
-	    key: 'unsubscribe',
-	    value: function unsubscribe(evt, args, callback) {
-	      var _this5 = this;
-
-	      this.request(RPCCommands.UNSUBSCRIBE, args, evt, function (error) {
-	        if (error) {
-	          if (callback) callback(error);
-	          return;
-	        }
-	        for (var i in _this5.activeSubscriptions) {
-	          var s = _this5.activeSubscriptions[i];
-	          if (evt === s.evt && deepEqual(args, s.args)) _this5.activeSubscriptions.splice(i, 1);
-	        }
-	        var eventName = getEventName(RPCCommands.DISPATCH, null, evt);
-	        _this5.evts.listeners(eventName).forEach(function (cb) {
-	          _this5.evts.removeListener(eventName, cb);
-	        });
-	        if (callback) callback();
-	      });
-	    }
-	  }, {
-	    key: '_handleOpen',
-	    value: function _handleOpen() {
-	      this.connected = true;
-	      this.authenticate();
-	    }
-	  }, {
-	    key: '_handleClose',
-	    value: function _handleClose(e) {
-	      var _this6 = this;
-
-	      this.connected = false;
-	      this.authenticated = false;
-	      this.ready = false;
-	      console.error('WS Closed:', e);
-	      if (this.requestedDisconnect) {
-	        this.requestedDisconnect = false;
+	  unsubscribe (evt, args, callback) {
+	    this.request(RPCCommands.UNSUBSCRIBE, args, evt, error => {
+	      if (error) {
+	        if (callback) callback(error);
 	        return;
 	      }
-	      try {
-	        this.socket.close();
-	      } catch (e) {}
-	      setTimeout(function () {
-	        return _this6.connect(null, e.code === 1006 ? ++_this6.connectionTries : 0);
-	      }, 250);
+	      for (const i in this.activeSubscriptions) {
+	        const s = this.activeSubscriptions[i];
+	        if (evt === s.evt && deepEqual(args, s.args)) this.activeSubscriptions.splice(i, 1);
+	      }
+	      const eventName = getEventName(RPCCommands.DISPATCH, null, evt);
+	      this.evts.listeners(eventName).forEach(cb => {
+	        this.evts.removeListener(eventName, cb);
+	      });
+	      if (callback) callback();
+	    });
+	  }
+
+	  _handleOpen () {
+	    this.connected = true;
+	    this.authenticate();
+	  }
+
+	  _handleClose (e) {
+	    this.connected = false;
+	    this.authenticated = false;
+	    this.ready = false;
+	    console.error('WS Closed:', e);
+	    if (this.requestedDisconnect) {
+	      this.requestedDisconnect = false;
+	      return;
 	    }
-	  }, {
-	    key: '_handleMessage',
-	    value: function _handleMessage(message) {
-	      var payload = null;
-	      try {
-	        payload = JSON.parse(message.data);
-	      } catch (e) {
-	        console.error('Payload not JSON:', payload);
-	        return;
-	      }
-	      var _payload = payload,
-	          cmd = _payload.cmd,
-	          evt = _payload.evt,
-	          nonce = _payload.nonce,
-	          data = _payload.data;
+	    try {
+	      this.socket.close();
+	    } catch (e) {}
+	    setTimeout(() => this.connect(null, e.code === 1006 ? ++this.connectionTries : 0), 250);
+	  }
 
+	  _handleMessage (message) {
+	    let payload = null;
+	    try {
+	      payload = JSON.parse(message.data);
+	    } catch (e) {
+	      console.error('Payload not JSON:', payload);
+	      return;
+	    }
+	    let {
+	      cmd,
+	      evt,
+	      nonce,
+	      data
+	    } = payload;
 
-	      if (cmd === RPCCommands.AUTHENTICATE) {
-	        if (evt === RPCEvents.ERROR) {
-	          this.evts.emit('ERROR', data);
-	          return;
-	        }
-	        this.user = data.user;
-	        this.application = data.application;
-	        this.evts.emit('READY', data);
-	      }
-	      if (cmd === RPCCommands.DISPATCH) {
-	        if (evt === RPCEvents.READY) {
-	          this.config = data.config;
-	          this.ready = true;
-	          this.flushQueue();
-	          return;
-	        }
-	        if (evt === RPCEvents.ERROR) {
-	          console.error('Dispatched Error', data);
-	          this.socket.close();
-	          return;
-	        }
-	        this.evts.emit(getEventName(RPCCommands.DISPATCH, null, evt), data);
-	        return;
-	      }
-	      var error = null;
+	    if (cmd === RPCCommands.AUTHENTICATE) {
 	      if (evt === RPCEvents.ERROR) {
-	        error = new Error(data.message);
-	        error.code = data.code;
-	        data = null;
+	        this.evts.emit('ERROR', data);
+	        return;
 	      }
-	      this.evts.emit(getEventName(RPCCommands.DISPATCH, nonce), error, data);
+	      this.user = data.user;
+	      this.application = data.application;
+	      this.evts.emit('READY', data);
 	    }
-	  }]);
-
-	  return RPCClient;
-	}();
-
+	    if (cmd === RPCCommands.DISPATCH) {
+	      if (evt === RPCEvents.READY) {
+	        this.config = data.config;
+	        this.ready = true;
+	        this.flushQueue();
+	        return;
+	      }
+	      if (evt === RPCEvents.ERROR) {
+	        console.error('Dispatched Error', data);
+	        this.socket.close();
+	        return;
+	      }
+	      this.evts.emit(getEventName(RPCCommands.DISPATCH, null, evt), data);
+	      return;
+	    }
+	    let error = null;
+	    if (evt === RPCEvents.ERROR) {
+	      error = new Error(data.message);
+	      error.code = data.code;
+	      data = null;
+	    }
+	    this.evts.emit(getEventName(RPCCommands.DISPATCH, nonce), error, data);
+	  }
+	}
 	module.exports = RPCClient;
+
 
 /***/ },
 /* 3 */
@@ -720,40 +671,46 @@
 /* 5 */
 /***/ function(module, exports) {
 
-	'use strict';
-
-	var keyMirror = function keyMirror(arr) {
-	  var tmp = {};
-	  var _iteratorNormalCompletion = true;
-	  var _didIteratorError = false;
-	  var _iteratorError = undefined;
-
-	  try {
-	    for (var _iterator = arr[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	      var value = _step.value;
-	      tmp[value] = value;
-	    }
-	  } catch (err) {
-	    _didIteratorError = true;
-	    _iteratorError = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion && _iterator.return) {
-	        _iterator.return();
-	      }
-	    } finally {
-	      if (_didIteratorError) {
-	        throw _iteratorError;
-	      }
-	    }
-	  }
-
+	const keyMirror = (arr) => {
+	  let tmp = {};
+	  for (const value of arr) tmp[value] = value;
 	  return tmp;
-	};
+	}
 
-	module.exports.RPCCommands = keyMirror(['DISPATCH', 'AUTHORIZE', 'AUTHENTICATE', 'GET_GUILD', 'GET_GUILDS', 'GET_CHANNEL', 'GET_CHANNELS', 'SUBSCRIBE', 'UNSUBSCRIBE', 'SET_LOCAL_VOLUME', 'SELECT_VOICE_CHANNEL']);
+	module.exports.RPCCommands = keyMirror([
+	  'DISPATCH',
 
-	module.exports.RPCEvents = keyMirror(['GUILD_STATUS', 'VOICE_STATE_CREATE', 'VOICE_STATE_DELETE', 'VOICE_STATE_UPDATE', 'SPEAKING_START', 'SPEAKING_STOP', 'MESSAGE_CREATE', 'MESSAGE_UPDATE', 'MESSAGE_DELETE', 'READY', 'ERROR']);
+	  'AUTHORIZE',
+	  'AUTHENTICATE',
+
+	  'GET_GUILD',
+	  'GET_GUILDS',
+	  'GET_CHANNEL',
+	  'GET_CHANNELS',
+
+	  'SUBSCRIBE',
+	  'UNSUBSCRIBE',
+
+	  'SET_LOCAL_VOLUME',
+	  'SELECT_VOICE_CHANNEL'
+	]);
+
+	module.exports.RPCEvents = keyMirror([
+	  'GUILD_STATUS',
+
+	  'VOICE_STATE_CREATE',
+	  'VOICE_STATE_DELETE',
+	  'VOICE_STATE_UPDATE',
+	  'SPEAKING_START',
+	  'SPEAKING_STOP',
+
+	  'MESSAGE_CREATE',
+	  'MESSAGE_UPDATE',
+	  'MESSAGE_DELETE',
+
+	  'READY',
+	  'ERROR'
+	]);
 
 	module.exports.RPCErrors = {
 	  UNKNOWN_ERROR: 1000,
@@ -788,141 +745,68 @@
 	};
 
 	// stolen from discord.js
-	var Endpoints = module.exports.Endpoints = {
+	const Endpoints = module.exports.Endpoints = {
 	  // general
 	  login: '/auth/login',
 	  logout: '/auth/logout',
 	  gateway: '/gateway',
 	  botGateway: '/gateway/bot',
-	  invite: function invite(id) {
-	    return '/invite/' + id;
-	  },
-	  inviteLink: function inviteLink(id) {
-	    return 'https://discord.gg/' + id;
-	  },
+	  invite: (id) => `/invite/${id}`,
+	  inviteLink: (id) => `https://discord.gg/${id}`,
 	  CDN: 'https://cdn.discordapp.com',
 
 	  // users
-	  user: function user(userID) {
-	    return '/users/' + userID;
-	  },
-	  userChannels: function userChannels(userID) {
-	    return Endpoints.user(userID) + '/channels';
-	  },
-	  userProfile: function userProfile(userID) {
-	    return Endpoints.user(userID) + '/profile';
-	  },
-	  avatar: function avatar(userID, _avatar) {
-	    return userID === '1' ? _avatar : Endpoints.user(userID) + '/avatars/' + _avatar + '.jpg';
-	  },
+	  user: (userID) => `/users/${userID}`,
+	  userChannels: (userID) => `${Endpoints.user(userID)}/channels`,
+	  userProfile: (userID) => `${Endpoints.user(userID)}/profile`,
+	  avatar: (userID, avatar) => userID === '1' ? avatar : `${Endpoints.user(userID)}/avatars/${avatar}.jpg`,
 	  me: '/users/@me',
-	  meGuild: function meGuild(guildID) {
-	    return Endpoints.me + '/guilds/' + guildID;
-	  },
-	  relationships: function relationships(userID) {
-	    return Endpoints.user(userID) + '/relationships';
-	  },
-	  note: function note(userID) {
-	    return Endpoints.me + '/notes/' + userID;
-	  },
+	  meGuild: (guildID) => `${Endpoints.me}/guilds/${guildID}`,
+	  relationships: (userID) => `${Endpoints.user(userID)}/relationships`,
+	  note: (userID) => `${Endpoints.me}/notes/${userID}`,
 
 	  // guilds
 	  guilds: '/guilds',
-	  guild: function guild(guildID) {
-	    return Endpoints.guilds + '/' + guildID;
-	  },
-	  guildIcon: function guildIcon(guildID, hash) {
-	    return Endpoints.guild(guildID) + '/icons/' + hash + '.jpg';
-	  },
-	  guildPrune: function guildPrune(guildID) {
-	    return Endpoints.guild(guildID) + '/prune';
-	  },
-	  guildEmbed: function guildEmbed(guildID) {
-	    return Endpoints.guild(guildID) + '/embed';
-	  },
-	  guildInvites: function guildInvites(guildID) {
-	    return Endpoints.guild(guildID) + '/invites';
-	  },
-	  guildRoles: function guildRoles(guildID) {
-	    return Endpoints.guild(guildID) + '/roles';
-	  },
-	  guildRole: function guildRole(guildID, roleID) {
-	    return Endpoints.guildRoles(guildID) + '/' + roleID;
-	  },
-	  guildBans: function guildBans(guildID) {
-	    return Endpoints.guild(guildID) + '/bans';
-	  },
-	  guildIntegrations: function guildIntegrations(guildID) {
-	    return Endpoints.guild(guildID) + '/integrations';
-	  },
-	  guildMembers: function guildMembers(guildID) {
-	    return Endpoints.guild(guildID) + '/members';
-	  },
-	  guildMember: function guildMember(guildID, memberID) {
-	    return Endpoints.guildMembers(guildID) + '/' + memberID;
-	  },
-	  guildMemberRole: function guildMemberRole(guildID, memberID, roleID) {
-	    return Endpoints.guildMember(guildID, memberID) + '/roles/' + roleID + '}';
-	  },
-	  stupidInconsistentGuildEndpoint: function stupidInconsistentGuildEndpoint(guildID) {
-	    return Endpoints.guildMember(guildID, '@me') + '/nick';
-	  },
-	  guildChannels: function guildChannels(guildID) {
-	    return Endpoints.guild(guildID) + '/channels';
-	  },
-	  guildEmojis: function guildEmojis(guildID) {
-	    return Endpoints.guild(guildID) + '/emojis';
-	  },
+	  guild: (guildID) => `${Endpoints.guilds}/${guildID}`,
+	  guildIcon: (guildID, hash) => `${Endpoints.guild(guildID)}/icons/${hash}.jpg`,
+	  guildPrune: (guildID) => `${Endpoints.guild(guildID)}/prune`,
+	  guildEmbed: (guildID) => `${Endpoints.guild(guildID)}/embed`,
+	  guildInvites: (guildID) => `${Endpoints.guild(guildID)}/invites`,
+	  guildRoles: (guildID) => `${Endpoints.guild(guildID)}/roles`,
+	  guildRole: (guildID, roleID) => `${Endpoints.guildRoles(guildID)}/${roleID}`,
+	  guildBans: (guildID) => `${Endpoints.guild(guildID)}/bans`,
+	  guildIntegrations: (guildID) => `${Endpoints.guild(guildID)}/integrations`,
+	  guildMembers: (guildID) => `${Endpoints.guild(guildID)}/members`,
+	  guildMember: (guildID, memberID) => `${Endpoints.guildMembers(guildID)}/${memberID}`,
+	  guildMemberRole: (guildID, memberID, roleID) => `${Endpoints.guildMember(guildID, memberID)}/roles/${roleID}}`,
+	  stupidInconsistentGuildEndpoint: (guildID) => `${Endpoints.guildMember(guildID, '@me')}/nick`,
+	  guildChannels: (guildID) => `${Endpoints.guild(guildID)}/channels`,
+	  guildEmojis: (guildID) => `${Endpoints.guild(guildID)}/emojis`,
 
 	  // channels
 	  channels: '/channels',
-	  channel: function channel(channelID) {
-	    return Endpoints.channels + '/' + channelID;
-	  },
-	  channelMessages: function channelMessages(channelID) {
-	    return Endpoints.channel(channelID) + '/messages';
-	  },
-	  channelInvites: function channelInvites(channelID) {
-	    return Endpoints.channel(channelID) + '/invites';
-	  },
-	  channelTyping: function channelTyping(channelID) {
-	    return Endpoints.channel(channelID) + '/typing';
-	  },
-	  channelPermissions: function channelPermissions(channelID) {
-	    return Endpoints.channel(channelID) + '/permissions';
-	  },
-	  channelMessage: function channelMessage(channelID, messageID) {
-	    return Endpoints.channelMessages(channelID) + '/' + messageID;
-	  },
-	  channelWebhooks: function channelWebhooks(channelID) {
-	    return Endpoints.channel(channelID) + '/webhooks';
-	  },
+	  channel: (channelID) => `${Endpoints.channels}/${channelID}`,
+	  channelMessages: (channelID) => `${Endpoints.channel(channelID)}/messages`,
+	  channelInvites: (channelID) => `${Endpoints.channel(channelID)}/invites`,
+	  channelTyping: (channelID) => `${Endpoints.channel(channelID)}/typing`,
+	  channelPermissions: (channelID) => `${Endpoints.channel(channelID)}/permissions`,
+	  channelMessage: (channelID, messageID) => `${Endpoints.channelMessages(channelID)}/${messageID}`,
+	  channelWebhooks: (channelID) => `${Endpoints.channel(channelID)}/webhooks`,
 
 	  // message reactions
-	  messageReactions: function messageReactions(channelID, messageID) {
-	    return Endpoints.channelMessage(channelID, messageID) + '/reactions';
-	  },
-	  messageReaction: function messageReaction(channel, msg, emoji, limit) {
-	    return Endpoints.messageReactions(channel, msg) + '/' + emoji + (limit ? '?limit=' + limit : '');
-	  },
-	  selfMessageReaction: function selfMessageReaction(channel, msg, emoji, limit) {
-	    return Endpoints.messageReaction(channel, msg, emoji, limit) + '/@me';
-	  },
-	  userMessageReaction: function userMessageReaction(channel, msg, emoji, limit, id) {
-	    return Endpoints.messageReaction(channel, msg, emoji, limit) + '/' + id;
-	  },
+	  messageReactions: (channelID, messageID) => `${Endpoints.channelMessage(channelID, messageID)}/reactions`,
+	  messageReaction: (channel, msg, emoji, limit) => `${Endpoints.messageReactions(channel, msg)}/${emoji}${limit ? `?limit=${limit}` : ''}`,
+	  selfMessageReaction: (channel, msg, emoji, limit) => `${Endpoints.messageReaction(channel, msg, emoji, limit)}/@me`,
+	  userMessageReaction: (channel, msg, emoji, limit, id) => `${Endpoints.messageReaction(channel, msg, emoji, limit)}/${id}`,
 
 	  // webhooks
-	  webhook: function webhook(webhookID, token) {
-	    return '/webhooks/' + webhookID + (token ? '/' + token : '');
-	  },
+	  webhook: (webhookID, token) => `/webhooks/${webhookID}${token ? `/${token}` : ''}`,
 
 	  // oauth
 	  myApplication: '/oauth2/applications/@me',
-	  getApp: function getApp(id) {
-	    return '/oauth2/authorize?client_id=' + id;
-	  }
+	  getApp: (id) => `/oauth2/authorize?client_id=${id}`
 	};
+
 
 /***/ },
 /* 6 */
@@ -2913,58 +2797,35 @@
 /* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
+	const superagent = __webpack_require__(6);
+	const { Endpoints } = __webpack_require__(5);
 
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var superagent = __webpack_require__(6);
-
-	var _require = __webpack_require__(5),
-	    Endpoints = _require.Endpoints;
-
-	module.exports = function () {
-	  function RESTClient(client) {
-	    _classCallCheck(this, RESTClient);
-
+	module.exports = class RESTClient {
+	  constructor (client) {
 	    this.client = client;
 	  }
 
-	  _createClass(RESTClient, [{
-	    key: 'makeRequest',
-	    value: function makeRequest(method, path) {
-	      var _this = this;
+	  makeRequest (method, path, body = {}, headers = {}) {
+	    return new Promise((resolve, reject) => {
+	      headers.Authorization = `Bearer ${this.client.accessToken}`;
+	      superagent[method.toLowerCase()](`https://${this.client.hostAndPort}${path}`)
+	      .set(headers).send(body).then(res => resolve(res.body), reject);
+	    });
+	  }
 
-	      var body = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-	      var headers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+	  sendMessage (channelID, content) {
+	    return this.makeRequest('post', Endpoints.channelMessages(channelID), { content });
+	  }
 
-	      return new Promise(function (resolve, reject) {
-	        headers.Authorization = 'Bearer ' + _this.client.accessToken;
-	        superagent[method.toLowerCase()]('https://' + _this.client.hostAndPort + path).set(headers).send(body).then(function (res) {
-	          return resolve(res.body);
-	        }, reject);
-	      });
-	    }
-	  }, {
-	    key: 'sendMessage',
-	    value: function sendMessage(channelID, content) {
-	      return this.makeRequest('post', Endpoints.channelMessages(channelID), { content: content });
-	    }
-	  }, {
-	    key: 'editMessage',
-	    value: function editMessage(channelID, messageID, content) {
-	      return this.makeRequest('patch', Endpoints.channelMessage(channelID, messageID), { content: content });
-	    }
-	  }, {
-	    key: 'deleteMessage',
-	    value: function deleteMessage(channelID, messageID) {
-	      return this.makeRequest('delete', Endpoints.channelMessage(channelID, messageID));
-	    }
-	  }]);
+	  editMessage (channelID, messageID, content) {
+	    return this.makeRequest('patch', Endpoints.channelMessage(channelID, messageID), { content });
+	  }
 
-	  return RESTClient;
-	}();
+	  deleteMessage (channelID, messageID) {
+	    return this.makeRequest('delete', Endpoints.channelMessage(channelID, messageID));
+	  }
+	}
+
 
 /***/ }
 /******/ ]);

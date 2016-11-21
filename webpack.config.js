@@ -12,28 +12,31 @@ const createConfig = (options) => {
     new webpack.DefinePlugin({ 'global.GENTLY': false })
   ];
 
+  const loaders = [
+    { test: /\.json$/, loader: 'json-loader' },
+    { test: /\.md$/, loader: 'ignore-loader' }
+  ]
+
   if (options.minify) plugins.push(new webpack.optimize.UglifyJsPlugin({ minimize: true }));
+
+  if (options.babelify) {
+    loaders.push({
+      test: /\.js$/,
+      exclude: /node_modules/,
+      loader: 'babel-loader',
+      query: {
+        presets: ['es2015']
+      }
+    });
+  }
 
   return {
     entry: './src/index.js',
     output: {
       path: __dirname,
-      filename: `./webpack/rpc.${version}${options.minify ? '.min' : ''}.js`
+      filename: `./webpack/rpc.${version}${options.babelify ? '' : '.es6'}${options.minify ? '.min' : ''}.js`
     },
-    module: {
-      loaders: [
-        { test: /\.json$/, loader: 'json-loader' },
-        { test: /\.md$/, loader: 'ignore-loader' },
-        {
-          test: /\.js$/,
-          exclude: /node_modules/,
-          loader: 'babel-loader',
-          query: {
-            presets: ['es2015']
-          }
-        }
-      ]
-    },
+    module: { loaders },
     node: {
       fs: 'empty',
       tls: 'empty',
@@ -43,4 +46,7 @@ const createConfig = (options) => {
   };
 };
 
-module.exports = createVariants({}, { minify: [false, true] }, createConfig);
+module.exports = createVariants({}, {
+  minify: [true, false],
+  babelify: [true, false]
+}, createConfig);
