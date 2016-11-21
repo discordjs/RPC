@@ -12,23 +12,14 @@ const createConfig = (options) => {
     new webpack.DefinePlugin({ 'global.GENTLY': false })
   ];
 
-  const loaders = [
+  const rules = [
     { test: /\.json$/, loader: 'json-loader' },
     { test: /\.md$/, loader: 'ignore-loader' }
   ]
 
   if (options.minify) plugins.push(new webpack.optimize.UglifyJsPlugin({ minimize: true }));
 
-  if (options.babelify) {
-    loaders.push({
-      test: /\.js$/,
-      exclude: /node_modules/,
-      loader: 'babel-loader',
-      query: {
-        presets: ['es2015']
-      }
-    });
-  }
+  if (options.babelify) rules.push({test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader', query: { presets: ['es2015'] }});
 
   return {
     entry: './src/index.js',
@@ -36,7 +27,7 @@ const createConfig = (options) => {
       path: __dirname,
       filename: `./webpack/rpc.${version}${options.babelify ? '' : '.es6'}${options.minify ? '.min' : ''}.js`
     },
-    module: { loaders },
+    module: { rules },
     node: {
       fs: 'empty',
       tls: 'empty',
