@@ -7,7 +7,7 @@ const WebSocket = typeof window !== 'undefined' ? window.WebSocket : require('ws
 const EventEmitter = require('events').EventEmitter;
 const { RPCCommands, RPCEvents, RPCErrors } = require('./Constants');
 const superagent = require('superagent');
-const lodash = require('lodash');
+const deepEqual = require('deep-equal');
 const uuid = require('uuid').v4;
 const RESTClient = require('./RESTClient');
 
@@ -165,9 +165,10 @@ class RPCClient {
         if (callback) callback(error);
         return;
       }
-      lodash.remove(this.activeSubscriptions, s => {
-        return evt === s.evt && lodash.isEqual(args, s.args);
-      });
+      for (const i in this.activeSubscriptions) {
+        const s = this.activeSubscriptions[i];
+        if (evt === s.evt && deepEqual(args, s.args)) this.activeSubscriptions.splice(i, 1);
+      }
       const eventName = getEventName(RPCCommands.DISPATCH, null, evt);
       this.evts.listeners(eventName).forEach(cb => {
         this.evts.removeListener(eventName, cb);

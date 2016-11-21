@@ -1,6 +1,6 @@
 {
   "name": "discord-rpc",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "A simple RPC client for Discord somewhat stolen from the Discord StreamKit.",
   "main": "src/index.js",
   "repository": {
@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/GusCaplan/discord-rpc#readme",
   "dependencies": {
-    "lodash": "^4.17.2",
+    "deep-equal": "^1.0.1",
     "superagent": "^3.0.0",
     "uuid": "^3.0.0",
     "ws": "^1.1.1"
