@@ -71,7 +71,65 @@ module.exports.ChannelTypes = {
   GUILD_VOICE: 2
 };
 
-module.exports.Endpoints = {
-  channelMessages: (cID) => `/channels/${cID}/messages`,
-  channelMessage: (cID, mID) => `/channels/${cID}/messages/${mID}`
-}
+// stolen from discord.js
+const Endpoints = module.exports.Endpoints = {
+  // general
+  login: '/auth/login',
+  logout: '/auth/logout',
+  gateway: '/gateway',
+  botGateway: '/gateway/bot',
+  invite: (id) => `/invite/${id}`,
+  inviteLink: (id) => `https://discord.gg/${id}`,
+  CDN: 'https://cdn.discordapp.com',
+
+  // users
+  user: (userID) => `/users/${userID}`,
+  userChannels: (userID) => `${Endpoints.user(userID)}/channels`,
+  userProfile: (userID) => `${Endpoints.user(userID)}/profile`,
+  avatar: (userID, avatar) => userID === '1' ? avatar : `${Endpoints.user(userID)}/avatars/${avatar}.jpg`,
+  me: '/users/@me',
+  meGuild: (guildID) => `${Endpoints.me}/guilds/${guildID}`,
+  relationships: (userID) => `${Endpoints.user(userID)}/relationships`,
+  note: (userID) => `${Endpoints.me}/notes/${userID}`,
+
+  // guilds
+  guilds: '/guilds',
+  guild: (guildID) => `${Endpoints.guilds}/${guildID}`,
+  guildIcon: (guildID, hash) => `${Endpoints.guild(guildID)}/icons/${hash}.jpg`,
+  guildPrune: (guildID) => `${Endpoints.guild(guildID)}/prune`,
+  guildEmbed: (guildID) => `${Endpoints.guild(guildID)}/embed`,
+  guildInvites: (guildID) => `${Endpoints.guild(guildID)}/invites`,
+  guildRoles: (guildID) => `${Endpoints.guild(guildID)}/roles`,
+  guildRole: (guildID, roleID) => `${Endpoints.guildRoles(guildID)}/${roleID}`,
+  guildBans: (guildID) => `${Endpoints.guild(guildID)}/bans`,
+  guildIntegrations: (guildID) => `${Endpoints.guild(guildID)}/integrations`,
+  guildMembers: (guildID) => `${Endpoints.guild(guildID)}/members`,
+  guildMember: (guildID, memberID) => `${Endpoints.guildMembers(guildID)}/${memberID}`,
+  guildMemberRole: (guildID, memberID, roleID) => `${Endpoints.guildMember(guildID, memberID)}/roles/${roleID}}`,
+  stupidInconsistentGuildEndpoint: (guildID) => `${Endpoints.guildMember(guildID, '@me')}/nick`,
+  guildChannels: (guildID) => `${Endpoints.guild(guildID)}/channels`,
+  guildEmojis: (guildID) => `${Endpoints.guild(guildID)}/emojis`,
+
+  // channels
+  channels: '/channels',
+  channel: (channelID) => `${Endpoints.channels}/${channelID}`,
+  channelMessages: (channelID) => `${Endpoints.channel(channelID)}/messages`,
+  channelInvites: (channelID) => `${Endpoints.channel(channelID)}/invites`,
+  channelTyping: (channelID) => `${Endpoints.channel(channelID)}/typing`,
+  channelPermissions: (channelID) => `${Endpoints.channel(channelID)}/permissions`,
+  channelMessage: (channelID, messageID) => `${Endpoints.channelMessages(channelID)}/${messageID}`,
+  channelWebhooks: (channelID) => `${Endpoints.channel(channelID)}/webhooks`,
+
+  // message reactions
+  messageReactions: (channelID, messageID) => `${Endpoints.channelMessage(channelID, messageID)}/reactions`,
+  messageReaction: (channel, msg, emoji, limit) => `${Endpoints.messageReactions(channel, msg)}/${emoji}${limit ? `?limit=${limit}` : ''}`,
+  selfMessageReaction: (channel, msg, emoji, limit) => `${Endpoints.messageReaction(channel, msg, emoji, limit)}/@me`,
+  userMessageReaction: (channel, msg, emoji, limit, id) => `${Endpoints.messageReaction(channel, msg, emoji, limit)}/${id}`,
+
+  // webhooks
+  webhook: (webhookID, token) => `/webhooks/${webhookID}${token ? `/${token}` : ''}`,
+
+  // oauth
+  myApplication: '/oauth2/applications/@me',
+  getApp: (id) => `/oauth2/authorize?client_id=${id}`
+};
