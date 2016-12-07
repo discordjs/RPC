@@ -21,7 +21,7 @@ module.exports.RPCCommands = keyMirror([
   'SET_LOCAL_VOLUME',
   'SELECT_VOICE_CHANNEL',
 
-  'BROWSER_INVITE'
+  'INVITE_BROWSER'
 ]);
 
 module.exports.RPCEvents = keyMirror([
