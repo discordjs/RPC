@@ -19,7 +19,9 @@ module.exports.RPCCommands = keyMirror([
   'UNSUBSCRIBE',
 
   'SET_LOCAL_VOLUME',
-  'SELECT_VOICE_CHANNEL'
+  'SELECT_VOICE_CHANNEL',
+
+  'BROWSER_INVITE'
 ]);
 
 module.exports.RPCEvents = keyMirror([
