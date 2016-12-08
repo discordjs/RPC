@@ -2032,7 +2032,7 @@ var Client = function (_EventEmitter) {
       return new Promise(function (resolve, reject) {
         _this2.rpc.request('GET_GUILD', { guild_id: id, timeout: timeout }, function (err, res) {
           if (err) reject(err);
-          resolve(res.data);
+          resolve(res);
         });
       });
     }
@@ -2044,7 +2044,7 @@ var Client = function (_EventEmitter) {
       return new Promise(function (resolve, reject) {
         _this3.rpc.request('GET_GUILDS', {}, function (err, res) {
           if (err) reject(err);
-          resolve(res.data.guilds);
+          resolve(res.guilds);
         });
       });
     }
@@ -2056,7 +2056,7 @@ var Client = function (_EventEmitter) {
       return new Promise(function (resolve, reject) {
         _this4.rpc.request('GET_CHANNEL', { channel_id: id, timeout: timeout }, function (err, res) {
           if (err) reject(err);
-          resolve(res.data);
+          resolve(res);
         });
       });
     }
@@ -2068,7 +2068,7 @@ var Client = function (_EventEmitter) {
       return new Promise(function (resolve, reject) {
         _this5.rpc.request('GET_CHANNELS', {}, function (err, res) {
           if (err) reject(err);
-          resolve(res.data.channels);
+          resolve(res.channels);
         });
       });
     }
@@ -2080,7 +2080,7 @@ var Client = function (_EventEmitter) {
       return new Promise(function (resolve, reject) {
         _this6.rpc.request('SET_USER_VOICE_SETTINGS', args, function (err, res) {
           if (err) reject(err);
-          resolve(res.data);
+          resolve(res);
         });
       });
     }
@@ -2094,7 +2094,7 @@ var Client = function (_EventEmitter) {
       return new Promise(function (resolve, reject) {
         _this7.rpc.request('SELECT_VOICE_CHANNEL', { channel_id: id, timeout: timeout, force: force }, function (err, res) {
           if (err) reject(err);
-          resolve(res.data);
+          resolve(res);
         });
       });
     }
@@ -2108,7 +2108,7 @@ var Client = function (_EventEmitter) {
       return new Promise(function (resolve, reject) {
         _this8.rpc.request('SELECT_TEXT_CHANNEL', { channel_id: id, timeout: timeout, force: force }, function (err, res) {
           if (err) reject(err);
-          resolve(res.data);
+          resolve(res);
         });
       });
     }
@@ -2120,7 +2120,7 @@ var Client = function (_EventEmitter) {
       return new Promise(function (resolve, reject) {
         _this9.rpc.request('GET_VOICE_SETTINGS', {}, function (err, res) {
           if (err) reject(err);
-          resolve(res.data);
+          resolve(res);
         });
       });
     }
@@ -2132,7 +2132,7 @@ var Client = function (_EventEmitter) {
       return new Promise(function (resolve, reject) {
         _this10.rpc.request('SET_VOICE_SETTINGS', args, function (err, res) {
           if (err) reject(err);
-          resolve(res.data);
+          resolve(res);
         });
       });
     }
@@ -2164,7 +2164,7 @@ module.exports = Client;
 
 module.exports = {
 	"name": "discord-rpc",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"description": "A simple RPC client for Discord somewhat stolen from the Discord StreamKit.",
 	"main": "src/index.js",
 	"repository": {

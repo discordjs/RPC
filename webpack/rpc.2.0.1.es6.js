@@ -1859,7 +1859,7 @@ module.exports = isObject;
 
 module.exports = {
 	"name": "discord-rpc",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"description": "A simple RPC client for Discord somewhat stolen from the Discord StreamKit.",
 	"main": "src/index.js",
 	"repository": {
@@ -1922,7 +1922,7 @@ class Client extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.rpc.request('GET_GUILD', { guild_id: id, timeout }, (err, res) => {
         if (err) reject(err);
-        resolve(res.data);
+        resolve(res);
       });
     });
   }
@@ -1931,7 +1931,7 @@ class Client extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.rpc.request('GET_GUILDS', {}, (err, res) => {
         if (err) reject(err);
-        resolve(res.data.guilds);
+        resolve(res.guilds);
       });
     });
   }
@@ -1940,7 +1940,7 @@ class Client extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.rpc.request('GET_CHANNEL', { channel_id: id, timeout }, (err, res) => {
         if (err) reject(err);
-        resolve(res.data);
+        resolve(res);
       });
     });
   }
@@ -1949,7 +1949,7 @@ class Client extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.rpc.request('GET_CHANNELS', {}, (err, res) => {
         if (err) reject(err);
-        resolve(res.data.channels);
+        resolve(res.channels);
       });
     });
   }
@@ -1958,7 +1958,7 @@ class Client extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.rpc.request('SET_USER_VOICE_SETTINGS', args, (err, res) => {
         if (err) reject(err);
-        resolve(res.data);
+        resolve(res);
       });
     });
   }
@@ -1967,7 +1967,7 @@ class Client extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.rpc.request('SELECT_VOICE_CHANNEL', { channel_id: id, timeout, force }, (err, res) => {
         if (err) reject(err);
-        resolve(res.data);
+        resolve(res);
       });
     });
   }
@@ -1976,7 +1976,7 @@ class Client extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.rpc.request('SELECT_TEXT_CHANNEL', { channel_id: id, timeout, force }, (err, res) => {
         if (err) reject(err);
-        resolve(res.data);
+        resolve(res);
       });
     });
   }
@@ -1985,7 +1985,7 @@ class Client extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.rpc.request('GET_VOICE_SETTINGS', {}, (err, res) => {
         if (err) reject(err);
-        resolve(res.data);
+        resolve(res);
       });
     });
   }
@@ -1994,7 +1994,7 @@ class Client extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.rpc.request('SET_VOICE_SETTINGS', args, (err, res) => {
         if (err) reject(err);
-        resolve(res.data);
+        resolve(res);
       });
     });
   }
