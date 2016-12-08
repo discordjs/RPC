@@ -18,27 +18,38 @@ module.exports.RPCCommands = keyMirror([
   'SUBSCRIBE',
   'UNSUBSCRIBE',
 
-  'SET_LOCAL_VOLUME',
+  'SET_USER_VOICE_SETTINGS',
   'SELECT_VOICE_CHANNEL',
+  'GET_VOICE_SETTINGS',
+  'SET_VOICE_SETTINGS',
 
-  'INVITE_BROWSER'
+  'SELECT_TEXT_CHANNEL',
+
+  'INVITE_BROWSER' //  just for kicks
 ]);
 
 module.exports.RPCEvents = keyMirror([
+  'READY',
+  'ERROR',
+
   'GUILD_STATUS',
+  'GUILD_CREATE',
+
+  'CHANNEL_CREATE',
 
   'VOICE_STATE_CREATE',
   'VOICE_STATE_DELETE',
   'VOICE_STATE_UPDATE',
+
+  'VOICE_SETTINGS_UPDATE',
+  'VOICE_CONNECTION_STATUS',
+
   'SPEAKING_START',
   'SPEAKING_STOP',
 
   'MESSAGE_CREATE',
   'MESSAGE_UPDATE',
-  'MESSAGE_DELETE',
-
-  'READY',
-  'ERROR'
+  'MESSAGE_DELETE'
 ]);
 
 module.exports.RPCErrors = {
@@ -107,7 +118,7 @@ const Endpoints = module.exports.Endpoints = {
   guildIntegrations: (guildID) => `${Endpoints.guild(guildID)}/integrations`,
   guildMembers: (guildID) => `${Endpoints.guild(guildID)}/members`,
   guildMember: (guildID, memberID) => `${Endpoints.guildMembers(guildID)}/${memberID}`,
-  guildMemberRole: (guildID, memberID, roleID) => `${Endpoints.guildMember(guildID, memberID)}/roles/${roleID}}`,
+  guildMemberRole: (guildID, memberID, roleID) => `${Endpoints.guildMember(guildID, memberID)}/roles/${roleID}`,
   stupidInconsistentGuildEndpoint: (guildID) => `${Endpoints.guildMember(guildID, '@me')}/nick`,
   guildChannels: (guildID) => `${Endpoints.guild(guildID)}/channels`,
   guildEmojis: (guildID) => `${Endpoints.guild(guildID)}/emojis`,
