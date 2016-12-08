@@ -34,7 +34,11 @@
     "utf-8-validate": "^1.2.1",
     "webpack": "2.1.0-beta.27"
   },
+  "peerDependencies": {
+    "erlpack": "github:hammerandchisel/erlpack"
+  },
   "browser": {
-    "ws": false
+    "ws": false,
+    "erlpack": false
   }
 }

@@ -61,7 +61,7 @@
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 18);
+/******/ 	return __webpack_require__(__webpack_require__.s = 19);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -348,7 +348,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   Modified by Gus Caplan
 */
 
-var WebSocket = typeof window !== 'undefined' ? window.WebSocket : __webpack_require__(17); // eslint-disable-line no-undef
 var EventEmitter = __webpack_require__(3).EventEmitter;
 
 var _require = __webpack_require__(0),
@@ -361,9 +360,26 @@ var deepEqual = __webpack_require__(9);
 var uuid = __webpack_require__(15).v4;
 var RESTClient = __webpack_require__(1);
 
-function getEventName(cmd, nonce, evt) {
-  return cmd + ':' + (nonce || evt);
+var WebSocket = void 0,
+    erlpack = void 0;
+var serialize = JSON.stringify;
+if (typeof window !== 'undefined') {
+  WebSocket = window.WebSocket; // eslint-disable-line no-undef
+  serialize = JSON.stringify;
+} else {
+  WebSocket = __webpack_require__(18);
+  try {
+    var _erlpack = __webpack_require__(17);
+    serialize = _erlpack.pack;
+  } catch (err) {
+    erlpack = null;
+    serialize = JSON.stringify;
+  }
 }
+
+var getEventName = function getEventName(cmd, nonce, evt) {
+  return cmd + ':' + (nonce || evt);
+};
 
 var RPCClient = function () {
   function RPCClient(options) {
@@ -393,7 +409,7 @@ var RPCClient = function () {
       this.accessToken = accessToken;
       var port = 6463 + tries % 10;
       this.hostAndPort = uuid() + '.discordapp.io:' + port;
-      this.socket = new WebSocket('wss://' + this.hostAndPort + '/?v=1&client_id=' + this.OAUTH2_CLIENT_ID); // eslint-disable-line
+      this.socket = new WebSocket('wss://' + this.hostAndPort + '/?v=1&encoding=' + (erlpack ? 'etf' : 'json') + '&client_id=' + this.OAUTH2_CLIENT_ID);
       this.socket.onopen = this._handleOpen.bind(this);
       this.socket.onclose = this._handleClose.bind(this);
       this.socket.onmessage = this._handleMessage.bind(this);
@@ -452,22 +468,16 @@ var RPCClient = function () {
 
       if (this.authenticated) return;
       superagent.get(this.API_ENDPOINT + '/token').then(function (r) {
-        if (!r.ok || !r.body.rpc_token) {
-          throw new Error('no rpc token');
-        }
+        if (!r.ok || !r.body.rpc_token) throw new Error('no rpc token');
         return _this2.request('AUTHORIZE', {
           client_id: _this2.OAUTH2_CLIENT_ID,
           scopes: ['rpc', 'rpc.api'],
           rpc_token: r.body.rpc_token
         });
       }).then(function (r) {
-        return superagent.post(_this2.API_ENDPOINT + '/token').send({
-          code: r.code
-        });
+        return superagent.post(_this2.API_ENDPOINT + '/token').send({ code: r.code });
       }).then(function (r) {
-        if (!r.ok) {
-          throw new Error('no access token');
-        }
+        if (!r.ok) throw new Error('no access token');
         _this2.accessToken = r.body.access_token;
         _this2.authenticate();
       }).catch(function (e) {
@@ -484,7 +494,7 @@ var RPCClient = function () {
         evt = undefined;
       }
       return new Promise(function (resolve, reject) {
-        if (!_this3.connected || !_this3.ready || !_this3.authenticated && ['AUTHORIZE', 'AUTHENTICATE'].indexOf(cmd) === -1) {
+        if (!_this3.connected || !_this3.ready || !_this3.authenticated && !['AUTHORIZE', 'AUTHENTICATE'].includes(cmd)) {
           _this3.queue.push(function () {
             return _this3.request(cmd, args, evt, callback);
           });
@@ -493,18 +503,9 @@ var RPCClient = function () {
         var nonce = uuid();
         _this3.evts.once(getEventName(RPCCommands.DISPATCH, nonce), function (err, res) {
           if (callback) callback(err, res);
-          if (err) {
-            reject(err);
-          } else {
-            resolve(res);
-          }
+          if (err) reject(err);else resolve(res);
         });
-        _this3.socket.send(JSON.stringify({
-          cmd: cmd,
-          args: args,
-          evt: evt,
-          nonce: nonce
-        }));
+        _this3.socket.send(serialize({ cmd: cmd, args: args, evt: evt, nonce: nonce }));
       });
     }
   }, {
@@ -521,11 +522,7 @@ var RPCClient = function () {
         if (!_this4.activeSubscriptions.find(function (s) {
           return callback === s.callback;
         })) {
-          _this4.activeSubscriptions.push({
-            evt: evt,
-            args: args,
-            callback: callback
-          });
+          _this4.activeSubscriptions.push({ evt: evt, args: args, callback: callback });
           _this4.evts.on(getEventName(RPCCommands.DISPATCH, null, evt), function (d) {
             if (callback) callback(null, d);
           });
@@ -547,9 +544,34 @@ var RPCClient = function () {
           if (evt === s.evt && deepEqual(args, s.args)) _this5.activeSubscriptions.splice(i, 1);
         }
         var eventName = getEventName(RPCCommands.DISPATCH, null, evt);
-        _this5.evts.listeners(eventName).forEach(function (cb) {
-          _this5.evts.removeListener(eventName, cb);
-        });
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+          for (var _iterator = _this5.evts.listeners(eventName)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var cb = _step.value;
+
+            _this5.evts.removeListener(eventName, cb);
+          }
+          // this.evts.listeners(eventName).forEach(cb => {
+          //   this.evts.removeListener(eventName, cb);
+          // });
+        } catch (err) {
+          _didIteratorError = true;
+          _iteratorError = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+          } finally {
+            if (_didIteratorError) {
+              throw _iteratorError;
+            }
+          }
+        }
+
         if (callback) callback();
       });
     }
@@ -567,7 +589,7 @@ var RPCClient = function () {
       this.connected = false;
       this.authenticated = false;
       this.ready = false;
-      console.error('WS Closed:', e);
+      this.emit('ERROR', e);
       if (this.requestedDisconnect) {
         this.requestedDisconnect = false;
         return;
@@ -584,9 +606,9 @@ var RPCClient = function () {
     value: function _handleMessage(message) {
       var payload = null;
       try {
-        payload = JSON.parse(message.data);
+        payload = (erlpack ? erlpack.unpack : JSON.stringify)(message.data);
       } catch (e) {
-        console.error('Payload not JSON:', payload);
+        this.emit('ERROR', 'Payload not JSON:\n' + payload);
         return;
       }
       var _payload = payload,
@@ -613,7 +635,7 @@ var RPCClient = function () {
           return;
         }
         if (evt === RPCEvents.ERROR) {
-          console.error('Dispatched Error', data);
+          this.evts.emit('ERROR', data);
           this.socket.close();
           return;
         }
@@ -2198,8 +2220,12 @@ module.exports = {
 		"utf-8-validate": "^1.2.1",
 		"webpack": "2.1.0-beta.27"
 	},
+	"peerDependencies": {
+		"erlpack": "github:hammerandchisel/erlpack"
+	},
 	"browser": {
-		"ws": false
+		"ws": false,
+		"erlpack": false
 	}
 };
 
@@ -3182,6 +3208,12 @@ module.exports = g;
 
 /***/ },
 /* 18 */
+/***/ function(module, exports) {
+
+/* (ignored) */
+
+/***/ },
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";

@@ -3,7 +3,6 @@
   Modified by Gus Caplan
 */
 
-const WebSocket = typeof window !== 'undefined' ? window.WebSocket : require('ws'); // eslint-disable-line no-undef
 const EventEmitter = require('events').EventEmitter;
 const { RPCCommands, RPCEvents, RPCErrors } = require('./Constants');
 const superagent = require('superagent');
@@ -11,9 +10,23 @@ const deepEqual = require('deep-equal');
 const uuid = require('uuid').v4;
 const RESTClient = require('./RESTClient');
 
-function getEventName (cmd, nonce, evt) {
-  return `${cmd}:${nonce || evt}`;
+let WebSocket, erlpack;
+let serialize = JSON.stringify;
+if (typeof window !== 'undefined') {
+  WebSocket = window.WebSocket; // eslint-disable-line no-undef
+  serialize = JSON.stringify;
+} else {
+  WebSocket = require('ws');
+  try {
+    let erlpack = require('erlpack');
+    serialize = erlpack.pack;
+  } catch (err) {
+    erlpack = null;
+    serialize = JSON.stringify;
+  }
 }
+
+const getEventName = (cmd, nonce, evt) => `${cmd}:${nonce || evt}`;
 
 class RPCClient {
   constructor (options) {
@@ -36,7 +49,7 @@ class RPCClient {
     this.accessToken = accessToken;
     const port = 6463 + (tries % 10);
     this.hostAndPort = `${uuid()}.discordapp.io:${port}`;
-    this.socket = new WebSocket(`wss://${this.hostAndPort}/?v=1&client_id=${this.OAUTH2_CLIENT_ID}`); // eslint-disable-line
+    this.socket = new WebSocket(`wss://${this.hostAndPort}/?v=1&encoding=${erlpack ? 'etf' : 'json'}&client_id=${this.OAUTH2_CLIENT_ID}`);
     this.socket.onopen = this._handleOpen.bind(this);
     this.socket.onclose = this._handleClose.bind(this);
     this.socket.onmessage = this._handleMessage.bind(this);
@@ -84,9 +97,7 @@ class RPCClient {
     superagent
       .get(`${this.API_ENDPOINT}/token`)
       .then(r => {
-        if (!r.ok || !r.body.rpc_token) {
-          throw new Error('no rpc token');
-        }
+        if (!r.ok || !r.body.rpc_token) throw new Error('no rpc token');
         return this.request('AUTHORIZE', {
           client_id: this.OAUTH2_CLIENT_ID,
           scopes: ['rpc', 'rpc.api'],
@@ -95,14 +106,10 @@ class RPCClient {
       })
       .then(r => superagent
         .post(`${this.API_ENDPOINT}/token`)
-        .send({
-          code: r.code
-        })
+        .send({ code: r.code })
       )
       .then(r => {
-        if (!r.ok) {
-          throw new Error('no access token');
-        }
+        if (!r.ok) throw new Error('no access token');
         this.accessToken = r.body.access_token;
         this.authenticate();
       })
@@ -117,25 +124,17 @@ class RPCClient {
       evt = undefined;
     }
     return new Promise((resolve, reject) => {
-      if (!this.connected || !this.ready || (!this.authenticated && ['AUTHORIZE', 'AUTHENTICATE'].indexOf(cmd) === -1)) {
+      if (!this.connected || !this.ready || (!this.authenticated && !['AUTHORIZE', 'AUTHENTICATE'].includes(cmd))) {
         this.queue.push(() => this.request(cmd, args, evt, callback));
         return;
       }
       const nonce = uuid();
       this.evts.once(getEventName(RPCCommands.DISPATCH, nonce), (err, res) => {
         if (callback) callback(err, res);
-        if (err) {
-          reject(err);
-        } else {
-          resolve(res);
-        }
+        if (err) reject(err);
+        else resolve(res);
       });
-      this.socket.send(JSON.stringify({
-        cmd,
-        args,
-        evt,
-        nonce
-      }));
+      this.socket.send(serialize({ cmd, args, evt, nonce }));
     });
   }
 
@@ -146,14 +145,8 @@ class RPCClient {
         return;
       }
       // on reconnect we resub to events, so don't dup listens
-      if (!this.activeSubscriptions.find(s => {
-        return callback === s.callback;
-      })) {
-        this.activeSubscriptions.push({
-          evt,
-          args,
-          callback
-        });
+      if (!this.activeSubscriptions.find(s => callback === s.callback)) {
+        this.activeSubscriptions.push({ evt, args, callback });
         this.evts.on(getEventName(RPCCommands.DISPATCH, null, evt), d => { if (callback) callback(null, d); });
       }
     });
@@ -170,9 +163,12 @@ class RPCClient {
         if (evt === s.evt && deepEqual(args, s.args)) this.activeSubscriptions.splice(i, 1);
       }
       const eventName = getEventName(RPCCommands.DISPATCH, null, evt);
-      this.evts.listeners(eventName).forEach(cb => {
+      for (const cb of this.evts.listeners(eventName)) {
         this.evts.removeListener(eventName, cb);
-      });
+      }
+      // this.evts.listeners(eventName).forEach(cb => {
+      //   this.evts.removeListener(eventName, cb);
+      // });
       if (callback) callback();
     });
   }
@@ -186,7 +182,7 @@ class RPCClient {
     this.connected = false;
     this.authenticated = false;
     this.ready = false;
-    console.error('WS Closed:', e);
+    this.emit('ERROR', e);
     if (this.requestedDisconnect) {
       this.requestedDisconnect = false;
       return;
@@ -200,17 +196,12 @@ class RPCClient {
   _handleMessage (message) {
     let payload = null;
     try {
-      payload = JSON.parse(message.data);
+      payload = (erlpack ? erlpack.unpack : JSON.stringify)(message.data);
     } catch (e) {
-      console.error('Payload not JSON:', payload);
+      this.emit('ERROR', `Payload not JSON:\n${payload}`);
       return;
     }
-    let {
-      cmd,
-      evt,
-      nonce,
-      data
-    } = payload;
+    let { cmd, evt, nonce, data } = payload;
 
     if (cmd === RPCCommands.AUTHENTICATE) {
       if (evt === RPCEvents.ERROR) {
@@ -229,7 +220,7 @@ class RPCClient {
         return;
       }
       if (evt === RPCEvents.ERROR) {
-        console.error('Dispatched Error', data);
+        this.evts.emit('ERROR', data);
         this.socket.close();
         return;
       }
