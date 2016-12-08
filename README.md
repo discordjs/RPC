@@ -24,13 +24,17 @@ const client = new RPCClient({
   OAUTH2_CLIENT_ID: 'xyzxyzxyz'
 });
 
-client.evts.on('READY', () => {
+client.on('ready', () => {
   console.log('Authenticated!');
   console.log('User:' `${client.user.username}#${client.user.discriminator}`, client.user.id)
   console.log('Application:', client.application.name, client.application.id);
-  client.request('GET_CHANNELS', {}, (err, data) => {
-    // data.channels is an array of channels :)
+  client.getChannels().then(res => {
+    // res is an array of channels :)
   });
+
+  client.selectVoiceChannel('1234567890').then(channel => {
+    console.log('the voice channel was set to', channel.id);
+  })
 
   // if you are so lucky as to have the rpc.api scope, you can have a little fun
   client.rest.sendMessage('some channel id', 'hello, how are you?');
