@@ -1,6 +1,6 @@
 {
   "name": "discord-rpc",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A simple RPC client for Discord somewhat stolen from the Discord StreamKit.",
   "main": "src/index.js",
   "repository": {
