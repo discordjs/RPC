@@ -31,7 +31,7 @@
     "json-loader": "^0.5.4",
     "parallel-webpack": "^1.5.0",
     "uglify-js": "github:mishoo/UglifyJS2#harmony",
-    "utf-8-validate": "^1.2.1",
+    "utf-8-validate": "^2.0.0",
     "webpack": "2.1.0-beta.27"
   },
   "peerDependencies": {
