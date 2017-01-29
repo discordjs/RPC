@@ -2,27 +2,26 @@ const superagent = require('superagent');
 const { Endpoints } = require('./Constants');
 
 module.exports = class RESTClient {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  makeRequest (method, path, body = {}, headers = {}) {
-    return new Promise((resolve, reject) => {
-      headers.Authorization = `Bearer ${this.client.accessToken}`;
-      superagent[method.toLowerCase()](`https://${this.client.hostAndPort}${path}`)
-      .set(headers).send(body).then(res => resolve(res.body), reject);
-    });
+  makeRequest(method, path, body = {}, headers = {}) {
+    headers.Authorization = `Bearer ${this.client.accessToken}`;
+    return superagent[method.toLowerCase()](`https://${this.client.hostAndPort}${path}`)
+    .set(headers).send(body)
+    .then(res => res.body);
   }
 
-  sendMessage (channelID, content) {
+  sendMessage(channelID, content) {
     return this.makeRequest('post', Endpoints.channelMessages(channelID), { content });
   }
 
-  editMessage (channelID, messageID, content) {
+  editMessage(channelID, messageID, content) {
     return this.makeRequest('patch', Endpoints.channelMessage(channelID, messageID), { content });
   }
 
-  deleteMessage (channelID, messageID) {
+  deleteMessage(channelID, messageID) {
     return this.makeRequest('delete', Endpoints.channelMessage(channelID, messageID));
   }
-}
+};

@@ -2,9 +2,9 @@ const RPCClient = require('./RPCClient');
 const EventEmitter = require('events').EventEmitter;
 
 class Client extends EventEmitter {
-  constructor ({ OAUTH2_CLIENT_ID } = {}) {
+  constructor(options) {
     super();
-    this.rpc = new RPCClient({ OAUTH2_CLIENT_ID });
+    this.rpc = new RPCClient(options);
     this.rpc.evts.on('READY', () => {
       this.user = this.rpc.user;
       this.application = this.rpc.application;
@@ -14,7 +14,7 @@ class Client extends EventEmitter {
     this.rest = this.rpc.rest;
   }
 
-  getGuild (id, timeout) {
+  getGuild(id, timeout) {
     return new Promise((resolve, reject) => {
       this.rpc.request('GET_GUILD', { guild_id: id, timeout }, (err, res) => {
         if (err) reject(err);
@@ -23,7 +23,7 @@ class Client extends EventEmitter {
     });
   }
 
-  getGuilds () {
+  getGuilds() {
     return new Promise((resolve, reject) => {
       this.rpc.request('GET_GUILDS', {}, (err, res) => {
         if (err) reject(err);
@@ -32,7 +32,7 @@ class Client extends EventEmitter {
     });
   }
 
-  getChannel (id, timeout) {
+  getChannel(id, timeout) {
     return new Promise((resolve, reject) => {
       this.rpc.request('GET_CHANNEL', { channel_id: id, timeout }, (err, res) => {
         if (err) reject(err);
@@ -41,7 +41,7 @@ class Client extends EventEmitter {
     });
   }
 
-  getChannels () {
+  getChannels() {
     return new Promise((resolve, reject) => {
       this.rpc.request('GET_CHANNELS', {}, (err, res) => {
         if (err) reject(err);
@@ -50,7 +50,7 @@ class Client extends EventEmitter {
     });
   }
 
-  setUserVoiceSettings (args) {
+  setUserVoiceSettings(args) {
     return new Promise((resolve, reject) => {
       this.rpc.request('SET_USER_VOICE_SETTINGS', args, (err, res) => {
         if (err) reject(err);
@@ -59,7 +59,7 @@ class Client extends EventEmitter {
     });
   }
 
-  selectVoiceChannel (id, timeout, force = false) {
+  selectVoiceChannel(id, timeout, force = false) {
     return new Promise((resolve, reject) => {
       this.rpc.request('SELECT_VOICE_CHANNEL', { channel_id: id, timeout, force }, (err, res) => {
         if (err) reject(err);
@@ -68,7 +68,7 @@ class Client extends EventEmitter {
     });
   }
 
-  selectTextChannel (id, timeout, force = false) {
+  selectTextChannel(id, timeout, force = false) {
     return new Promise((resolve, reject) => {
       this.rpc.request('SELECT_TEXT_CHANNEL', { channel_id: id, timeout, force }, (err, res) => {
         if (err) reject(err);
@@ -77,7 +77,7 @@ class Client extends EventEmitter {
     });
   }
 
-  getVoiceSettings () {
+  getVoiceSettings() {
     return new Promise((resolve, reject) => {
       this.rpc.request('GET_VOICE_SETTINGS', {}, (err, res) => {
         if (err) reject(err);
@@ -86,7 +86,7 @@ class Client extends EventEmitter {
     });
   }
 
-  setVoiceSettings (args) {
+  setVoiceSettings(args) {
     return new Promise((resolve, reject) => {
       this.rpc.request('SET_VOICE_SETTINGS', args, (err, res) => {
         if (err) reject(err);
@@ -95,15 +95,15 @@ class Client extends EventEmitter {
     });
   }
 
-  subscribe (event, args, callback) {
+  subscribe(event, args, callback) {
     return this.rpc.subscribe(event, args, callback);
   }
 
-  unsubscribe (event, args, callback) {
+  unsubscribe(event, args, callback) {
     return this.rpc.unsubscribe(event, args, callback);
   }
 
-  connect (token) {
+  connect(token) {
     return this.rpc.connect(token);
   }
 }

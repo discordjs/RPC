@@ -21,7 +21,8 @@ const RPCClient = require('discord-rpc').Client;
 const RPCClient = window.DiscordRPC.Client;
 
 const client = new RPCClient({
-  OAUTH2_CLIENT_ID: 'xyzxyzxyz'
+  OAUTH2_CLIENT_ID: 'xyzxyzxyz',
+  ORIGIN: 'something.gg/rpc' // not needed in browser
 });
 
 client.on('ready', () => {

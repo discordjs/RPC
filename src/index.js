@@ -3,7 +3,7 @@ module.exports = {
   Client: require('./Client'),
   RPC: require('./RPCClient'),
   Rest: require('./RESTClient'),
-  Constants: require('./Constants')
-}
+  Constants: require('./Constants'),
+};
 
 if (typeof window !== 'undefined') window.DiscordRPC = module.exports;

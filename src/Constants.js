@@ -2,7 +2,7 @@ const keyMirror = (arr) => {
   let tmp = {};
   for (const value of arr) tmp[value] = value;
   return tmp;
-}
+};
 
 module.exports.RPCCommands = keyMirror([
   'DISPATCH',
@@ -25,7 +25,7 @@ module.exports.RPCCommands = keyMirror([
 
   'SELECT_TEXT_CHANNEL',
 
-  'INVITE_BROWSER' //  just for kicks
+  'INVITE_BROWSER', //  just for kicks
 ]);
 
 module.exports.RPCEvents = keyMirror([
@@ -49,7 +49,7 @@ module.exports.RPCEvents = keyMirror([
 
   'MESSAGE_CREATE',
   'MESSAGE_UPDATE',
-  'MESSAGE_DELETE'
+  'MESSAGE_DELETE',
 ]);
 
 module.exports.RPCErrors = {
@@ -67,21 +67,21 @@ module.exports.RPCErrors = {
   INVALID_TOKEN: 4009,
   INVALID_USER: 4010,
 
-  OAUTH2_ERROR: 5000
+  OAUTH2_ERROR: 5000,
 };
 
 module.exports.RPCCloseCodes = {
   INVALID_CLIENTID: 4000,
   INVALID_ORIGIN: 4001,
   RATELIMITED: 4002,
-  TOKEN_REVOKED: 4003
+  TOKEN_REVOKED: 4003,
 };
 
 module.exports.ChannelTypes = {
   DM: 1,
   GROUP_DM: 3,
   GUILD_TEXT: 0,
-  GUILD_VOICE: 2
+  GUILD_VOICE: 2,
 };
 
 // stolen from discord.js
@@ -135,14 +135,16 @@ const Endpoints = module.exports.Endpoints = {
 
   // message reactions
   messageReactions: (channelID, messageID) => `${Endpoints.channelMessage(channelID, messageID)}/reactions`,
-  messageReaction: (channel, msg, emoji, limit) => `${Endpoints.messageReactions(channel, msg)}/${emoji}${limit ? `?limit=${limit}` : ''}`,
+  messageReaction: (channel, msg, emoji, limit) =>
+    `${Endpoints.messageReactions(channel, msg)}/${emoji}${limit ? `?limit=${limit}` : ''}`,
   selfMessageReaction: (channel, msg, emoji, limit) => `${Endpoints.messageReaction(channel, msg, emoji, limit)}/@me`,
-  userMessageReaction: (channel, msg, emoji, limit, id) => `${Endpoints.messageReaction(channel, msg, emoji, limit)}/${id}`,
+  userMessageReaction: (channel, msg, emoji, limit, id) =>
+    `${Endpoints.messageReaction(channel, msg, emoji, limit)}/${id}`,
 
   // webhooks
   webhook: (webhookID, token) => `/webhooks/${webhookID}${token ? `/${token}` : ''}`,
 
   // oauth
   myApplication: '/oauth2/applications/@me',
-  getApp: (id) => `/oauth2/authorize?client_id=${id}`
+  getApp: (id) => `/oauth2/authorize?client_id=${id}`,
 };

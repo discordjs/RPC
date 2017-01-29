@@ -18,7 +18,7 @@ if (typeof window !== 'undefined') {
 } else {
   WebSocket = require('ws');
   try {
-    let erlpack = require('erlpack');
+    erlpack = require('erlpack');
     serialize = erlpack.pack;
   } catch (err) {
     erlpack = null;
@@ -29,7 +29,7 @@ if (typeof window !== 'undefined') {
 const getEventName = (cmd, nonce, evt) => `${cmd}:${nonce || evt}`;
 
 class RPCClient {
-  constructor (options) {
+  constructor(options) {
     this.evts = new EventEmitter();
     this.activeSubscriptions = [];
     this.queue = [];
@@ -41,41 +41,45 @@ class RPCClient {
     this.config = {};
     this.OAUTH2_CLIENT_ID = options.OAUTH2_CLIENT_ID;
     this.API_ENDPOINT = options.API_ENDPOINT || '';
+    this.ORIGIN = options.ORIGIN;
     this.rest = new RESTClient(this);
   }
 
-  connect (accessToken = this.accessToken, tries = 0) {
+  connect(accessToken = this.accessToken, tries = 0) {
     if (this.connected) return;
     this.accessToken = accessToken;
     const port = 6463 + (tries % 10);
     this.hostAndPort = `${uuid()}.discordapp.io:${port}`;
-    this.socket = new WebSocket(`wss://${this.hostAndPort}/?v=1&encoding=${erlpack ? 'etf' : 'json'}&client_id=${this.OAUTH2_CLIENT_ID}`);
+    this.socket = new WebSocket(
+      `wss://${this.hostAndPort}/?v=1&encoding=${erlpack ? 'etf' : 'json'}&client_id=${this.OAUTH2_CLIENT_ID}`,
+      typeof window !== 'undefined' ? { origin: this.ORIGIN } : null
+    );
     this.socket.onopen = this._handleOpen.bind(this);
     this.socket.onclose = this._handleClose.bind(this);
     this.socket.onmessage = this._handleMessage.bind(this);
   }
 
-  disconnect (callback) {
+  disconnect(callback) {
     if (!this.connected) return;
     this.requestedDisconnect = true;
     this.socket.close();
     if (callback) callback();
   }
 
-  reconnect () {
+  reconnect() {
     if (!this.connected) return;
     this.socket.close();
   }
 
-  authenticate () {
+  authenticate() {
     if (this.authenticated) return;
     if (!this.accessToken) {
       this.authorize();
       return;
     }
     this.request('AUTHENTICATE', {
-      access_token: this.accessToken
-    }, (e, r) => {
+      access_token: this.accessToken,
+    }, (e) => {
       if (e && e.code === RPCErrors.INVALID_TOKEN) {
         this.authorize();
         return;
@@ -86,13 +90,13 @@ class RPCClient {
     });
   }
 
-  flushQueue () {
+  flushQueue() {
     const queue = this.queue;
     this.queue = [];
     queue.forEach(c => c());
   }
 
-  authorize () {
+  authorize() {
     if (this.authenticated) return;
     superagent
       .get(`${this.API_ENDPOINT}/token`)
@@ -101,7 +105,7 @@ class RPCClient {
         return this.request('AUTHORIZE', {
           client_id: this.OAUTH2_CLIENT_ID,
           scopes: ['rpc', 'rpc.api'],
-          rpc_token: r.body.rpc_token
+          rpc_token: r.body.rpc_token,
         });
       })
       .then(r => superagent
@@ -113,12 +117,12 @@ class RPCClient {
         this.accessToken = r.body.access_token;
         this.authenticate();
       })
-      .catch(e => {
+      .catch(() => {
         setTimeout(this.authorize.bind(this), 3000);
       });
   }
 
-  request (cmd, args, evt, callback) {
+  request(cmd, args, evt, callback) {
     if (typeof evt === 'function') {
       callback = evt;
       evt = undefined;
@@ -138,7 +142,7 @@ class RPCClient {
     });
   }
 
-  subscribe (evt, args, callback) {
+  subscribe(evt, args, callback) {
     this.request(RPCCommands.SUBSCRIBE, args, evt, error => {
       if (error) {
         if (callback) callback(error);
@@ -152,7 +156,7 @@ class RPCClient {
     });
   }
 
-  unsubscribe (evt, args, callback) {
+  unsubscribe(evt, args, callback) {
     this.request(RPCCommands.UNSUBSCRIBE, args, evt, error => {
       if (error) {
         if (callback) callback(error);
@@ -173,12 +177,12 @@ class RPCClient {
     });
   }
 
-  _handleOpen () {
+  _handleOpen() {
     this.connected = true;
     this.authenticate();
   }
 
-  _handleClose (e) {
+  _handleClose(e) {
     this.connected = false;
     this.authenticated = false;
     this.ready = false;
@@ -189,11 +193,11 @@ class RPCClient {
     }
     try {
       this.socket.close();
-    } catch (e) {}
+    } catch (err) {} // eslint-disable-line no-empty
     setTimeout(() => this.connect(null, e.code === 1006 ? ++this.connectionTries : 0), 250);
   }
 
-  _handleMessage (message) {
+  _handleMessage(message) {
     let payload = null;
     try {
       payload = (erlpack ? erlpack.unpack : JSON.stringify)(message.data);
