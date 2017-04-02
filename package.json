@@ -1,6 +1,6 @@
 {
   "name": "discord-rpc",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "A simple RPC client for Discord somewhat stolen from the Discord StreamKit.",
   "main": "src/index.js",
   "repository": {
@@ -11,7 +11,7 @@
     "web-dist": "node ./node_modules/parallel-webpack/bin/run.js"
   },
   "author": "Gus Caplan <me@gus.host>",
-  "license": "MIT",
+  "license": "unlicensed",
   "bugs": {
     "url": "https://github.com/GusCaplan/discord-rpc/issues"
   },
