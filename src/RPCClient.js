@@ -52,7 +52,7 @@ class RPCClient {
     this.hostAndPort = `${uuid()}.discordapp.io:${port}`;
     this.socket = new WebSocket(
       `wss://${this.hostAndPort}/?v=1&encoding=${erlpack ? 'etf' : 'json'}&client_id=${this.OAUTH2_CLIENT_ID}`,
-      typeof window !== 'undefined' ? { origin: this.ORIGIN } : null
+      typeof window === 'undefined' ? { origin: this.ORIGIN } : null
     );
     this.socket.onopen = this._handleOpen.bind(this);
     this.socket.onclose = this._handleClose.bind(this);
