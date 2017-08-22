@@ -1,44 +1,19 @@
 {
   "name": "discord-rpc",
-  "version": "2.0.3",
-  "description": "A simple RPC client for Discord somewhat stolen from the Discord StreamKit.",
-  "main": "src/index.js",
+  "version": "2.1.0",
+  "description": "A simple RPC client for Discord",
+  "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GusCaplan/discord-rpc.git"
+    "url": "git+https://github.com/devsnek/discord-rpc.git"
   },
-  "scripts": {
-    "web-dist": "node ./node_modules/parallel-webpack/bin/run.js"
-  },
-  "author": "Gus Caplan <me@gus.host>",
+  "author": "snek <me@gus.host>",
   "license": "unlicensed",
   "bugs": {
-    "url": "https://github.com/GusCaplan/discord-rpc/issues"
+    "url": "https://github.com/devsnek/discord-rpc/issues"
   },
-  "homepage": "https://github.com/GusCaplan/discord-rpc#readme",
+  "homepage": "https://github.com/devsnek/discord-rpc#readme",
   "dependencies": {
-    "deep-equal": "^1.0.1",
-    "superagent": "^3.0.0",
-    "uuid": "^3.0.0",
-    "ws": "^1.1.1"
-  },
-  "devDependencies": {
-    "babel-core": "^6.18.2",
-    "babel-loader": "^6.2.8",
-    "babel-preset-es2015": "^6.18.0",
-    "bufferutil": "^1.2.1",
-    "ignore-loader": "^0.1.2",
-    "json-loader": "^0.5.4",
-    "parallel-webpack": "^1.5.0",
-    "uglify-js": "github:mishoo/UglifyJS2#harmony",
-    "utf-8-validate": "^2.0.0",
-    "webpack": "2.1.0-beta.27"
-  },
-  "peerDependencies": {
-    "erlpack": "github:hammerandchisel/erlpack"
-  },
-  "browser": {
-    "ws": false,
-    "erlpack": false
+    "discord.js": "latest"
   }
 }
