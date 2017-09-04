@@ -1,19 +1,29 @@
 {
   "name": "discord-rpc",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "A simple RPC client for Discord",
-  "main": "index.js",
+  "main": "src/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/devsnek/discord-rpc.git"
   },
   "author": "snek <me@gus.host>",
-  "license": "unlicensed",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/devsnek/discord-rpc/issues"
   },
   "homepage": "https://github.com/devsnek/discord-rpc#readme",
   "dependencies": {
-    "discord.js": "latest"
+    "discord.js": "github:hydrabolt/discord.js"
+  },
+  "browser": {
+    "ws": false,
+    "uws": false,
+    "erlpack": false,
+    "src/transports/IPC.js": false
+  },
+  "optionalDependencies": {
+    "erlpack": "github:hammerandchisel/erlpack",
+    "uws": "^8.14.1"
   }
 }
