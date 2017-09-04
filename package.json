@@ -1,6 +1,6 @@
 {
   "name": "discord-rpc",
-  "version": "3.0.0",
+  "version": "3.0.0-beta",
   "description": "A simple RPC client for Discord",
   "main": "src/index.js",
   "repository": {
