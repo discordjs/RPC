@@ -21,9 +21,5 @@
     "uws": false,
     "erlpack": false,
     "src/transports/IPC.js": false
-  },
-  "optionalDependencies": {
-    "erlpack": "github:hammerandchisel/erlpack",
-    "uws": "^8.14.1"
   }
 }

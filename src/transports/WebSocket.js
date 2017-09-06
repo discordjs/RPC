@@ -1,25 +1,5 @@
-const browser = require('os').platform() === 'browser';
 const EventEmitter = require('events');
-const zlib = require('zlib');
-const erlpack = (function findErlpack() {
-  if (browser) return null;
-  try {
-    const e = require('erlpack');
-    if (!e.pack) return null;
-    return e;
-  } catch (e) {
-    return null;
-  }
-}());
-
-const WebSocket = (function findWebSocket() {
-  if (browser) return window.WebSocket; // eslint-disable-line no-undef
-  try {
-    return require('uws');
-  } catch (e) {
-    return require('ws');
-  }
-}());
+const { WebSocket } = require('discord.js');
 
 class WebSocketTransport extends EventEmitter {
   constructor(client) {
@@ -36,18 +16,19 @@ class WebSocketTransport extends EventEmitter {
     const port = 6463 + (tries % 10);
     this.hostAndPort = `127.0.0.1:${port}`;
     const cid = this.client.clientID;
-    this.ws = new WebSocket(
-      `ws://${this.hostAndPort}/?v=1&encoding=${erlpack ? 'etf' : 'json'}${cid ? `&client_id=${cid}` : ''}`,
+    const ws = this.ws = WebSocket.create(
+      `ws://${this.hostAndPort}/`,
+      { v: 1, client_id: cid || null },
       typeof window === 'undefined' ? { origin: this.client.options._login.origin } : undefined
     );
-    this.ws.onopen = this.onOpen.bind(this);
-    this.ws.onclose = this.onClose.bind(this);
-    this.ws.onmessage = this.onMessage.bind(this);
+    ws.onopen = this.onOpen.bind(this);
+    ws.onclose = this.onClose.bind(this);
+    ws.onmessage = this.onMessage.bind(this);
   }
 
   send(data) {
     if (!this.ws) return;
-    this.ws.send(encode(data));
+    this.ws.send(WebSocket.pack(data));
   }
 
   close() {
@@ -58,7 +39,7 @@ class WebSocketTransport extends EventEmitter {
   ping() {} // eslint-disable-line no-empty-function
 
   onMessage(event) {
-    this.emit('message', decode(event.data));
+    this.emit('message', WebSocket.unpack(event.data));
   }
 
   onOpen() {
@@ -75,25 +56,6 @@ class WebSocketTransport extends EventEmitter {
   }
 }
 
-/**
- * Attempts to serialise data from the WebSocket.
- * @param {string|Object} data Data to unpack
- * @returns {Object}
- */
-function decode(data) {
-  if (Array.isArray(data)) data = Buffer.concat(data);
-  if (data instanceof ArrayBuffer) data = Buffer.from(new Uint8Array(data));
-
-  if (erlpack && typeof data !== 'string') return erlpack.unpack(data);
-  else if (data instanceof Buffer) data = zlib.inflateSync(data).toString();
-
-  return JSON.parse(data);
-}
-
-function encode(data) {
-  return erlpack ? erlpack.pack(data) : JSON.stringify(data);
-}
-
 module.exports = WebSocketTransport;
-module.exports.encode = encode;
-module.exports.decode = decode;
+module.exports.encode = WebSocket.pack;
+module.exports.decode = WebSocket.unpack;

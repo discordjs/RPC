@@ -1,5 +1,7 @@
 # Discord RPC Client
 
+#### Official RPC extension for [Discord.js](https://discord.js.org), and all types used in this library are from Discord.js
+
 ```js
 const { Client } = require('discord-rpc');
 
