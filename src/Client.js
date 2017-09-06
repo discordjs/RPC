@@ -111,6 +111,7 @@ class RPCClient extends BaseClient {
         clearTimeout(timeout);
         resolve(this);
       });
+      this.transport.once('close', reject);
       this.transport.connect({ client_id: this.clientID });
     }).then(() => {
       if (!this.clientID) return true;

@@ -22,7 +22,7 @@ class WebSocketTransport extends EventEmitter {
       typeof window === 'undefined' ? { origin: this.client.options._login.origin } : undefined
     );
     ws.onopen = this.onOpen.bind(this);
-    ws.onclose = this.onClose.bind(this);
+    ws.onclose = ws.onerror = this.onClose.bind(this);
     ws.onmessage = this.onMessage.bind(this);
   }
 
@@ -52,7 +52,9 @@ class WebSocketTransport extends EventEmitter {
     try {
       this.ws.close();
     } catch (err) {} // eslint-disable-line no-empty
-    setTimeout(() => this.connect(undefined, e.code === 1006 ? ++this.tries : 0), 250);
+    const derr = e.code >= 4000 && e.code < 5000;
+    if (!e.code || derr) this.emit('close', e);
+    if (!derr) setTimeout(() => this.connect(undefined, e.code === 1006 ? ++this.tries : 0), 250);
   }
 }
 

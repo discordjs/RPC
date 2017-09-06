@@ -50,6 +50,12 @@ class IPCTransport extends EventEmitter {
         }
       });
     });
+    socket.on('close', this.onClose.bind(this));
+    socket.on('error', this.onClose.bind(this));
+  }
+
+  onClose(e) {
+    this.emit('close', e);
   }
 
   send(data, op = OPCodes.FRAME) {
