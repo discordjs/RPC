@@ -18,6 +18,7 @@
     "snekfetch": "^3.3.0"
   },
   "browser": {
+    "net": false,
     "ws": false,
     "uws": false,
     "erlpack": false,
