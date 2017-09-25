@@ -22,5 +22,12 @@
     "uws": false,
     "erlpack": false,
     "src/transports/IPC.js": false
+  },
+  "devDependencies": {
+    "discord.js-docgen": "github:hydrabolt/discord.js-docgen",
+    "jsdoc-strip-async-await": "^0.1.0"
+  },
+  "scripts": {
+    "docs": "docgen --source src --output docs.json --jsdoc jsdoc.json"
   }
 }
