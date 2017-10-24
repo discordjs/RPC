@@ -14,12 +14,6 @@ const {
 } = require('discord.js');
 const { Error } = require('discord.js/src/errors');
 
-/**
- * @typedef {RPCClientOptions}
- * @extends {ClientOptions}
- * @prop {string} transport RPC transport. one of `ipc` or `websocket`
- */
-
 function createCache(create) {
   return {
     has: () => false,
@@ -28,6 +22,12 @@ function createCache(create) {
     create,
   };
 }
+
+/**
+ * @typedef {RPCClientOptions}
+ * @extends {ClientOptions}
+ * @prop {string} transport RPC transport. one of `ipc` or `websocket`
+ */
 
 /**
  * The main hub for interacting with Discord RPC
@@ -421,20 +421,28 @@ class RPCClient extends BaseClient {
       .then(() => stop);
   }
 
-
-  // Purposely undocumented, in private beta
   setActivity(args) {
     return this.request(RPCCommands.SET_ACTIVITY, Util.snakeCaseObject(args));
   }
 
-  // Purposely undocumented, only available for browser @ *.discordapp.com origin
   deepLink(args) {
     return this.request(RPCCommands.DEEP_LINK, args);
   }
 
-  // Purposely undocumented, only available for browser @ *.discordapp.com origin
   invite(code) {
     return this.request(RPCCommands.INVITE_BROWSER, { code });
+  }
+
+  sendJoinInvite(user) {
+    return this.request(RPCCommands.SEND_ACTIVITY_JOIN_INVITE, {
+      user_id: user.id ? user.id : user,
+    });
+  }
+
+  sendJoinRequest(user) {
+    return this.request(RPCCommands.SEND_ACTIVITY_JOIN_REQUEST, {
+      user_id: user.id ? user.id : user,
+    });
   }
 
   /**
