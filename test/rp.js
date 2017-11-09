@@ -5,6 +5,14 @@ const clientID = '180984871685062656';
 const client = new Client({ transport: 'ipc' });
 
 client.on('ready', () => {
+  client.subscribe('GAME_JOIN', ({ secret }) => {
+    console.log('Game Join Request', secret);
+  });
+
+  client.subscribe('GAME_SPECTATE', ({ secret }) => {
+    console.log('Game Spectate Request', secret);
+  });
+
   client.setActivity({
     state: 'slithering',
     details: '🐍',

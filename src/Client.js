@@ -1,7 +1,7 @@
 const request = require('snekfetch');
 const transports = require('./transports');
 const { RPCCommands, RPCEvents } = require('./Constants');
-const { pid: getPid } = require('./Util');
+const { pid: getPid, inferClasses } = require('./Util');
 const {
   Collection,
   Constants,
@@ -113,7 +113,7 @@ class RPCClient extends BaseClient {
       });
       this.transport.once('close', reject);
       this.transport.connect({ client_id: this.clientID });
-    }).then(async () => {
+    }).then(() => {
       if (!this.clientID || !options) {
         this.user = {};
         this.application = {};
@@ -156,7 +156,8 @@ class RPCClient extends BaseClient {
       this._expecting.delete(message.nonce);
     } else {
       const subid = subKey(message.evt, message.args);
-      if (this._subscriptions.has(subid)) this._subscriptions.get(subid)(message.data);
+      if (!this._subscriptions.has(subid)) return;
+      this._subscriptions.get(subid)(inferClasses(message.data));
     }
   }
 

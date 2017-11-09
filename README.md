@@ -27,6 +27,7 @@ const client = new Client({ transport: 'ipc' });
 client.on('ready', () => {
   // based on the object from
   // https://github.com/discordapp/discord-rpc/blob/master/examples/send-presence
+  console.log('Ready, setting rich presence');
   client.setActivity({
     state: 'West of House',
     details: 'Frustration Level: 0',
@@ -41,7 +42,15 @@ client.on('ready', () => {
     joinSecret: 'join',
     spectateSecret: 'look',
     instance: false,
-  })
+  });
+
+  client.subscribe('ACTIVITY_JOIN', ({ secret }) => {
+    console.log('Game Join Request', secret);
+  });
+
+  client.subscribe('ACTIVITY_SPECTATE', ({ secret }) => {
+    console.log('Game Spectate Request', secret);
+  });
 });
 
 // Log into RPC with client id; without auth allows only rich presence
