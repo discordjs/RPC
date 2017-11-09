@@ -1,10 +1,10 @@
 const request = require('snekfetch');
 const transports = require('./transports');
 const { RPCCommands, RPCEvents } = require('./Constants');
+const { pid: getPid } = require('./Util');
 const {
   Collection,
   Constants,
-  Util,
   Snowflake,
   ClientApplication,
   Guild,
@@ -12,7 +12,7 @@ const {
   User,
   BaseClient,
 } = require('discord.js');
-const { Error } = require('discord.js/src/errors');
+const { TypeError } = require('discord.js/src/errors');
 
 function createCache(create) {
   return {
@@ -57,7 +57,7 @@ class RPCClient extends BaseClient {
 
     const Transport = transports[options.transport];
     if (!Transport || (this.browser && options.transport === 'ipc')) {
-      throw new Error('RPC_INVALID_TRANSPORT', options.transport);
+      throw new TypeError('RPC_INVALID_TRANSPORT', options.transport);
     }
 
     /**
@@ -114,7 +114,10 @@ class RPCClient extends BaseClient {
       this.transport.once('close', reject);
       this.transport.connect({ client_id: this.clientID });
     }).then(() => {
-      if (!this.clientID) return true;
+      if (!this.clientID || !options) {
+        this.emit('ready');
+        return true;
+      }
       if (options.accessToken) return this.authenticate(options.accessToken);
       return this.authorize(options);
     });
@@ -421,16 +424,53 @@ class RPCClient extends BaseClient {
       .then(() => stop);
   }
 
-  setActivity(args) {
-    return this.request(RPCCommands.SET_ACTIVITY, Util.snakeCaseObject(args));
-  }
-
-  deepLink(args) {
-    return this.request(RPCCommands.DEEP_LINK, args);
-  }
-
-  invite(code) {
-    return this.request(RPCCommands.INVITE_BROWSER, { code });
+  setActivity(args, pid = getPid()) {
+    let timestamps;
+    if (args.startTimestamp || args.endTimestamp) {
+      timestamps = {
+        start: args.startTimestamp,
+        end: args.endTimestamp,
+      };
+    }
+    let assets;
+    if (
+      args.largeImageKey || args.largeImageText ||
+      args.smallImageKey || args.smallImageText
+    ) {
+      assets = {
+        large_image: args.largeImageKey,
+        large_text: args.largeImageText,
+        small_image: args.smallImageKey,
+        small_text: args.smallImageText,
+      };
+    }
+    let party;
+    if (args.partySize || args.partyId || args.partyMax) {
+      party = { id: args.partyId };
+      if (args.partySize || args.partyMax) {
+        party.size = [args.partySize, args.partyMax];
+      }
+    }
+    let secrets;
+    if (args.matchSecret || args.joinSecret || args.spectateSecret) {
+      secrets = {
+        match: args.matchSecret,
+        join: args.joinSecret,
+        spectate: args.spectateSecret,
+      };
+    }
+    return this.request(RPCCommands.SET_ACTIVITY, {
+      pid,
+      activity: {
+        state: args.state,
+        details: args.details,
+        timestamps,
+        assets,
+        party,
+        secrets,
+        instance: !!args.instance,
+      },
+    });
   }
 
   sendJoinInvite(user) {

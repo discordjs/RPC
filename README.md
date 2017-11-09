@@ -16,10 +16,42 @@
 
 #### Official RPC extension for [Discord.js](https://discord.js.org), and all types used in this library are from Discord.js
 
-### Usable in browser or node
+### Rich Presence Example
+```javascript
+const { Client } = require('discord-rpc');
+
+const clientID = '18718019238012938';
+
+const client = new Client({ transport: 'ipc' });
+
+client.on('ready', () => {
+  // based on the object from
+  // https://github.com/discordapp/discord-rpc/blob/master/examples/send-presence
+  client.setActivity({
+    state: 'West of House',
+    details: 'Frustration Level: 0',
+    startTimestamp: Date.now(),
+    endTimestamp: Date.now() + (10 * 60e3),
+    largeImageKey: 'canary-large',
+    smallImageKey: 'ptb-small',
+    partyId: 'party1234',
+    partySize: 1,
+    partyMax: 6,
+    matchSecret: 'xyzzy',
+    joinSecret: 'join',
+    spectateSecret: 'look',
+    instance: false,
+  })
+});
+
+// Log into RPC with client id; without auth allows only rich presence
+// If you want to use other features you should see below for an example
+// of authorization with scopes, which will still let you use rich presence
+client.login(clientID);
+```
 
 ### Browser Example
-```js
+```javascript
 const { Client } = require('discord-rpc');
 
 const clientID = '187406016902594560';
@@ -44,5 +76,5 @@ client.on('ready', () => {
 });
 
 // Log in to RPC with client id and access token
-client.login(clientID, { accessToken: params.get('access_token') });
+client.login(clientID, { accessToken: params.get('access_token'), scopes });
 ```
