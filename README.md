@@ -20,8 +20,7 @@
 ```javascript
 const { Client } = require('discord-rpc');
 
-const clientID = '18718019238012938';
-
+// Rich Presence only works with IPC, and so it won't work in browser
 const client = new Client({ transport: 'ipc' });
 
 client.on('ready', () => {
@@ -53,10 +52,11 @@ client.on('ready', () => {
   });
 });
 
-// Log into RPC with client id; without auth allows only rich presence
+// Log in to RPC with only client id; allows only rich presence.
 // If you want to use other features you should see below for an example
 // of authorization with scopes, which will still let you use rich presence
-client.login(clientID);
+// if you are using the `ipc` transport.
+client.login('18712471923871230');
 ```
 
 ### Browser Example
