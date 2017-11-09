@@ -1,23 +1,23 @@
 const { Client } = require('../');
 
-const clientID = '187406016902594560';
+const clientID = '180984871685062656';
 
 const client = new Client({ transport: 'ipc' });
 
 client.on('ready', () => {
   client.setActivity({
-    state: 'West of House',
-    details: 'Frustration Level: 0',
+    state: 'slithering',
+    details: '🐍',
     startTimestamp: Date.now(),
-    endTimestamp: Date.now() + (10 * 60e3),
-    largeImageKey: 'logo_large',
-    smallImageKey: 'logo_small',
-    partyId: 'party1234',
+    endTimestamp: Date.now() + 1337,
+    largeImageKey: 'snek_large',
+    smallImageKey: 'snek_small',
+    partyId: 'snek_party',
     partySize: 1,
-    partyMax: 6,
-    matchSecret: 'xyzzy',
-    joinSecret: 'join',
-    spectateSecret: 'look',
+    partyMax: 1,
+    // matchSecret: 'xyzzy',
+    // joinSecret: 'join',
+    // spectateSecret: 'look',
     instance: false,
   }).then(console.log);
 });

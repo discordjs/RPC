@@ -105,7 +105,7 @@ class RPCClient extends BaseClient {
   login(clientID, options) {
     return new Promise((resolve, reject) => {
       this.clientID = clientID;
-      this.options._login = options;
+      this.options._login = options || {};
       const timeout = setTimeout(() => reject(new Error('connection timeout')), 10e3);
       this.once('connected', () => {
         clearTimeout(timeout);
@@ -113,8 +113,10 @@ class RPCClient extends BaseClient {
       });
       this.transport.once('close', reject);
       this.transport.connect({ client_id: this.clientID });
-    }).then(() => {
+    }).then(async () => {
       if (!this.clientID || !options) {
+        this.user = {};
+        this.application = {};
         this.emit('ready');
         return true;
       }
