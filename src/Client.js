@@ -56,9 +56,9 @@ class RPCClient extends BaseClient {
     this.user = null;
 
     const Transport = transports[options.transport];
-    if (!Transport || (this.browser && options.transport === 'ipc')) {
+    if (!Transport || (this.browser && options.transport === 'ipc'))
       throw new TypeError('RPC_INVALID_TRANSPORT', options.transport);
-    }
+
 
     /**
      * Raw transport userd
@@ -120,7 +120,8 @@ class RPCClient extends BaseClient {
         this.emit('ready');
         return true;
       }
-      if (options.accessToken) return this.authenticate(options.accessToken);
+      if (options.accessToken)
+        return this.authenticate(options.accessToken);
       return this.authorize(options);
     });
   }
@@ -151,12 +152,15 @@ class RPCClient extends BaseClient {
       this.emit('connected');
     } else if (this._expecting.has(message.nonce)) {
       const { resolve, reject } = this._expecting.get(message.nonce);
-      if (message.evt === 'ERROR') reject(new Error(message.data.message));
-      else resolve(message.data);
+      if (message.evt === 'ERROR')
+        reject(new Error(message.data.message));
+      else
+        resolve(message.data);
       this._expecting.delete(message.nonce);
     } else {
       const subid = subKey(message.evt, message.args);
-      if (!this._subscriptions.has(subid)) return;
+      if (!this._subscriptions.has(subid))
+        return;
       this._subscriptions.get(subid)(inferClasses(message.data));
     }
   }
@@ -179,6 +183,8 @@ class RPCClient extends BaseClient {
         },
       });
     }
+
+
     return this.request('AUTHORIZE', {
       client_id: this.clientID,
       scopes,
@@ -199,6 +205,8 @@ class RPCClient extends BaseClient {
           auth: false,
         }).then(({ access_token }) => this.authenticate(access_token));
       }
+
+
       return { code };
     });
   }
@@ -241,7 +249,8 @@ class RPCClient extends BaseClient {
     return this.request(RPCCommands.GET_GUILDS, { timeout })
       .then(({ guilds }) => {
         const c = new Collection();
-        for (const guild of guilds) c.set(guild.id, this.guilds.create(guild));
+        for (const guild of guilds)
+          c.set(guild.id, this.guilds.create(guild));
         return c;
       });
   }
@@ -255,9 +264,9 @@ class RPCClient extends BaseClient {
   getChannel(id, timeout) {
     return this.request(RPCCommands.GET_CHANNEL, { channel_id: id, timeout })
       .then((channel) => {
-        if (channel.guild_id) {
+        if (channel.guild_id)
           return this.getGuild(channel.guild_id);
-        }
+
         return Channel.create(this, channel);
       });
   }
@@ -274,8 +283,10 @@ class RPCClient extends BaseClient {
         const c = new Collection();
         for (const channel of channels) {
           const guild_id = channel.guild_id;
-          // eslint-disable-next-line no-await-in-loop
-          if (guild_id && !guilds.has(guild_id)) guilds.set(guild_id, await this.getGuild(guild_id));
+
+          if (guild_id && !guilds.has(guild_id))
+            // eslint-disable-next-line no-await-in-loop
+            guilds.set(guild_id, await this.getGuild(guild_id));
           c.set(channel.id, this.channels.create(channel, guilds.get(channel.guild_id)));
         }
         return c;
@@ -435,6 +446,8 @@ class RPCClient extends BaseClient {
         end: args.endTimestamp,
       };
     }
+
+
     let assets;
     if (
       args.largeImageKey || args.largeImageText ||
@@ -447,12 +460,13 @@ class RPCClient extends BaseClient {
         small_text: args.smallImageText,
       };
     }
+
+
     let party;
     if (args.partySize || args.partyId || args.partyMax) {
       party = { id: args.partyId };
-      if (args.partySize || args.partyMax) {
+      if (args.partySize || args.partyMax)
         party.size = [args.partySize, args.partyMax];
-      }
     }
     let secrets;
     if (args.matchSecret || args.joinSecret || args.spectateSecret) {
@@ -462,6 +476,8 @@ class RPCClient extends BaseClient {
         spectate: args.spectateSecret,
       };
     }
+
+
     return this.request(RPCCommands.SET_ACTIVITY, {
       pid,
       activity: {

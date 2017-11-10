@@ -89,6 +89,7 @@ exports.RPCCloseCodes = {
 
 function keyMirror(arr) {
   let tmp = {};
-  for (const value of arr) tmp[value] = value;
+  for (const value of arr)
+    tmp[value] = value;
   return tmp;
 }

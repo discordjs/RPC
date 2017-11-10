@@ -23,10 +23,10 @@ client.on('ready', () => {
     partyId: 'snek_party',
     partySize: 1,
     partyMax: 1,
-    // matchSecret: 'xyzzy',
-    // joinSecret: 'join',
-    // spectateSecret: 'look',
-    instance: false,
+    matchSecret: 'slithers',
+    joinSecret: 'boop',
+    spectateSecret: 'sniff',
+    instance: true,
   }).then(console.log);
 });
 
