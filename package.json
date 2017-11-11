@@ -15,7 +15,7 @@
   "homepage": "https://github.com/devsnek/discord-rpc#readme",
   "dependencies": {
     "discord.js": "github:hydrabolt/discord.js",
-    "snekfetch": "^3.3.0"
+    "snekfetch": "^3.5.8"
   },
   "browser": {
     "net": false,

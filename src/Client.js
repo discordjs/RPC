@@ -184,31 +184,29 @@ class RPCClient extends BaseClient {
       });
     }
 
-
-    return this.request('AUTHORIZE', {
+    const { code } = await this.request('AUTHORIZE', {
       client_id: this.clientID,
       scopes,
       rpc_token: rpcToken,
-    }).then(({ code }) => {
-      if (tokenEndpoint) {
-        return request.post(tokenEndpoint)
-          .send({ code })
-          .then((r) => this.authenticate(r.body.access_token));
-      } else if (clientSecret) {
-        return this.api.oauth2.token.post({
-          query: {
-            client_id: this.clientID,
-            client_secret: clientSecret,
-            code,
-            grant_type: 'authorization_code',
-          },
-          auth: false,
-        }).then(({ access_token }) => this.authenticate(access_token));
-      }
-
-
-      return { code };
     });
+
+    if (tokenEndpoint) {
+      const r = await request.post(tokenEndpoint).send({ code });
+      return this.authenticate(r.body.access_token);
+    } else if (clientSecret) {
+      const { access_token } = await this.api.oauth2.token.post({
+        query: {
+          client_id: this.clientID,
+          client_secret: clientSecret,
+          code,
+          grant_type: 'authorization_code',
+        },
+        auth: false,
+      });
+      return this.authenticate(access_token);
+    }
+
+    return { code };
   }
 
   /**

@@ -29,17 +29,19 @@ class IPCTransport extends EventEmitter {
     socket.pause();
     socket.on('readable', () => {
       decode(socket, ({ op, data }) => {
-        if (data.cmd === 'AUTHORIZE' && data.evt !== 'ERROR') {
-          findEndpoint().then((endpoint) => {
-            this.client.rest.endpoint = endpoint;
-            this.client.rest.versioned = false;
-          });
-        }
         switch (op) {
           case OPCodes.PING:
             this.send(data, OPCodes.PONG);
             break;
           case OPCodes.FRAME:
+            if (!data)
+              return;
+            if (data.cmd === 'AUTHORIZE' && data.evt !== 'ERROR') {
+              findEndpoint().then((endpoint) => {
+                this.client.rest.endpoint = endpoint;
+                this.client.rest.versioned = false;
+              });
+            }
             this.emit('message', data);
             break;
           case OPCodes.CLOSE:
@@ -83,27 +85,36 @@ function encode(op, data) {
 
 function decode(socket, callback) {
   const header = socket.read(8);
-  if (!header) return;
+  if (!header)
+    return;
   const op = header.readInt32LE(0);
   const len = header.readInt32LE(4);
-  if (op > Object.keys(OPCodes).length || len < 0) throw new Error('protocol error');
-  const data = JSON.parse(socket.read(len));
+  if (len < 0 || !Object.values(OPCodes).includes(op))
+    throw new Error('protocol error');
+  const raw = socket.read(len);
+  if (!raw)
+    throw new Error('data size does not match what was received');
+  const data = JSON.parse(raw);
   callback({ op, data }); // eslint-disable-line callback-return
   decode(socket, callback);
 }
 
 function getIPCPath() {
-  if (process.platform === 'win32') return '\\\\?\\pipe\\discord-ipc-0';
+  if (process.platform === 'win32')
+    return '\\\\?\\pipe\\discord-ipc-0';
   const env = process.env;
   const prefix = env.XDG_RUNTIME_DIR || env.TMPDIR || env.TMP || env.TEMP || '/tmp';
   return `${prefix}/discord-ipc-0`;
 }
 
 function findEndpoint(tries = 0) {
+  if (tries > 30)
+    throw new Error('Could not find endpoint');
   const endpoint = `http://127.0.0.1:${6463 + (tries % 10)}`;
   return request.get(endpoint)
     .end((err, res) => {
-      if ((err.status || res.status) === 401) return Promise.resolve(endpoint);
+      if ((err.status || res.status) === 401)
+        return endpoint;
       return findEndpoint(tries++);
     });
 }

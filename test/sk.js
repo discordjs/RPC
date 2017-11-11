@@ -9,7 +9,7 @@ const client = new DiscordRPC.Client({
 client.on('ready', () => {
   console.log('Logged in as', client.application.name);
   console.log('Authed for user', client.user.tag);
-  client.getChannel('307310179635036160').then(console.log, console.error);
+  client.getChannel('188767514824671233').then(console.log, console.error);
 });
 
 client.login('207646673902501888', {
