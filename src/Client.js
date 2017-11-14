@@ -438,15 +438,15 @@ class RPCClient extends BaseClient {
 
   setActivity(args, pid = getPid()) {
     let timestamps;
+    let assets;
+    let party;
+    let secrets;
     if (args.startTimestamp || args.endTimestamp) {
       timestamps = {
         start: args.startTimestamp,
         end: args.endTimestamp,
       };
     }
-
-
-    let assets;
     if (
       args.largeImageKey || args.largeImageText ||
       args.smallImageKey || args.smallImageText
@@ -458,15 +458,11 @@ class RPCClient extends BaseClient {
         small_text: args.smallImageText,
       };
     }
-
-
-    let party;
     if (args.partySize || args.partyId || args.partyMax) {
       party = { id: args.partyId };
       if (args.partySize || args.partyMax)
         party.size = [args.partySize, args.partyMax];
     }
-    let secrets;
     if (args.matchSecret || args.joinSecret || args.spectateSecret) {
       secrets = {
         match: args.matchSecret,
@@ -474,7 +470,6 @@ class RPCClient extends BaseClient {
         spectate: args.spectateSecret,
       };
     }
-
 
     return this.request(RPCCommands.SET_ACTIVITY, {
       pid,

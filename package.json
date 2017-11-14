@@ -29,6 +29,6 @@
     "jsdoc-strip-async-await": "^0.1.0"
   },
   "scripts": {
-    "docs": "docgen --source src --output docs.json --jsdoc jsdoc.json"
+    "docs": "docgen --source src --output docs.json --jsdoc jsdoc.json --custom docgen.json"
   }
 }
