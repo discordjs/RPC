@@ -1,6 +1,8 @@
 [
   {
-    "name": "Welcome",
-    "files": [{ "path": "../README.md" }]
+    "name": "General",
+    "files": [
+      { "path": "../README.md", "name": "Welcome" }
+    ]
   }
 ]
