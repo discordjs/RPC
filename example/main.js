@@ -49,6 +49,7 @@ function setActivity() {
   rpc.setActivity({
     details: `booped ${boops} times`,
     state: 'in slither party',
+    startTimestamp: new Date(),
     largeImageKey: 'snek_large',
     largeImageText: 'tea is delicious',
     smallImageKey: 'snek_small',

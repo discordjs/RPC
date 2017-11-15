@@ -446,6 +446,10 @@ class RPCClient extends BaseClient {
         start: args.startTimestamp,
         end: args.endTimestamp,
       };
+      if (timestamps.start instanceof Date)
+        timestamps.start = Math.round(timestamps.start.getTime() / 1000);
+      if (timestamps.end instanceof Date)
+        timestamps.end = Math.round(timestamps.end.getTime() / 1000);
     }
     if (
       args.largeImageKey || args.largeImageText ||
