@@ -74,7 +74,7 @@ rpc.on('ready', () => {
   }, 15e3);
 });
 
-// don't change the client id
+// don't change the client id if you want this example to work
 rpc.login('180984871685062656').catch(console.error);
 
 ipc.on('boop', (evt, { boops: b }) => {

@@ -16,48 +16,7 @@
 
 #### Official RPC extension for [Discord.js](https://discord.js.org), and all types used in this library are from Discord.js
 
-### Rich Presence Example
-```javascript
-const { Client } = require('discord-rpc');
-
-// Rich Presence only works with IPC, and so it won't work in browser
-const client = new Client({ transport: 'ipc' });
-
-client.on('ready', () => {
-  // based on the object from
-  // https://github.com/discordapp/discord-rpc/blob/master/examples/send-presence
-  console.log('Ready, setting rich presence');
-  client.setActivity({
-    state: 'West of House',
-    details: 'Frustration Level: 0',
-    startTimestamp: Date.now(),
-    endTimestamp: Date.now() + (10 * 60e3),
-    largeImageKey: 'canary-large',
-    smallImageKey: 'ptb-small',
-    partyId: 'party1234',
-    partySize: 1,
-    partyMax: 6,
-    matchSecret: 'xyzzy',
-    joinSecret: 'join',
-    spectateSecret: 'look',
-    instance: false,
-  });
-
-  client.subscribe('ACTIVITY_JOIN', ({ secret }) => {
-    console.log('Game Join Request', secret);
-  });
-
-  client.subscribe('ACTIVITY_SPECTATE', ({ secret }) => {
-    console.log('Game Spectate Request', secret);
-  });
-});
-
-// Log in to RPC with only client id; allows only rich presence.
-// If you want to use other features you should see below for an example
-// of authorization with scopes, which will still let you use rich presence
-// if you are using the `ipc` transport.
-client.login('18712471923871230');
-```
+### [Rich Presence Example](https://github.com/devsnek/discord-rpc/blob/master/example)
 
 ### Browser Example
 ```javascript
