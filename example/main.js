@@ -4,54 +4,17 @@ const { app, BrowserWindow, ipcMain: ipc } = require('electron');
 const path = require('path');
 const url = require('url');
 const crypto = require('crypto');
-
 const DiscordRPC = require('../');
-
-let mainWindow;
-let rpcClient;
 
 // "secure" :/
 const hash = (d) => crypto.createHash('md5').update(d).digest('hex');
 
-// emitted from index.html
-ipc.on('ready', () => {
-  if (rpcClient)
-    return;
-
-  rpcClient = new DiscordRPC.Client({ transport: 'ipc' });
-
-  rpcClient.login('180984871685062656')
-    .then(() => {
-      console.log('rpc client ready!');
-
-      rpcClient.setActivity({
-        state: 'using discord-rpc',
-        details: 'js is pretty cool',
-        startTimestamp: Date.now(),
-        endTimestamp: Date.now() + (5 * 60e3),
-        largeImageKey: 'snek_large',
-        largeImageText: 'tea is delicious',
-        smallImageKey: 'snek_small',
-        smallImageText: 'i am my own pillows',
-        partyId: 'snek_party',
-        partySize: 1,
-        partyMax: 1,
-        matchSecret: hash('match'),
-        joinSecret: hash('join'),
-        spectateSecret: hash('spectate'),
-        instance: true,
-      }).then((activity) => {
-        if (mainWindow)
-          mainWindow.webContents.send('activity', activity);
-      }, console.error);
-    }, console.error);
-});
+let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 400,
-    height: 600,
-    name: 'Rich Presence Example',
+    width: 340,
+    height: 380,
   });
 
   mainWindow.loadURL(url.format({
@@ -62,10 +25,6 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
-    if (rpcClient) {
-      rpcClient.destroy();
-      rpcClient = null;
-    }
   });
 }
 
@@ -79,4 +38,44 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (mainWindow === null)
     createWindow();
+});
+
+const rpc = new DiscordRPC.Client({ transport: 'ipc' });
+let boops = 0;
+
+function setActivity() {
+  if (!rpc)
+    return;
+
+  rpc.setActivity({
+    details: `booped ${boops} times`,
+    state: 'in slither party',
+    largeImageKey: 'snek_large',
+    largeImageText: 'tea is delicious',
+    smallImageKey: 'snek_small',
+    smallImageText: 'i am my own pillows',
+    partyId: 'snek_party',
+    partySize: 1,
+    partyMax: 1,
+    matchSecret: hash('match'),
+    joinSecret: hash('join'),
+    spectateSecret: hash('spectate'),
+    instance: true,
+  });
+}
+
+rpc.on('ready', () => {
+  setActivity();
+
+  // activity can only be set every 15 seconds
+  setInterval(() => {
+    setActivity();
+  }, 15e3);
+});
+
+// don't change the client id
+rpc.login('180984871685062656').catch(console.error);
+
+ipc.on('boop', (evt, { boops: b }) => {
+  boops = b;
 });

@@ -2,27 +2,14 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Rich Presence Example</title>
-    <style>
-      body {
-        font-family: sans-serif;
-      }
-    </style>
+    <title>BOOP TEH SNEK (RPC Example)</title>
+    <link rel=stylesheet href=style.css />
   </head>
   <body>
-    <h1>Rich Presence Example</h1>
-    <pre><code>
-      {}
-    </code></pre>
-    <script>
-      const { ipcRenderer: ipc } = require('electron');
-      const code = document.querySelector('code');
+    <h1>BOOP TEH SNEK</h1>
+    <div id=game><div id=snek>🐍</div></div>
+    <h3 id=boops>0 BOOPS</h3>
 
-      ipc.on('activity', (event, activity) => {
-        code.innerHTML = JSON.stringify(activity, null, 2);
-      });
-
-      ipc.send('ready');
-    </script>
+    <script src=renderer.js></script>
   </body>
 </html>

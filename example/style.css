@@ -1,0 +1,31 @@
+body, html {
+  margin: 0px;
+  height: 100%;
+  font-family: sans-serif;
+}
+
+h1 {
+  text-align: center;
+  margin: auto;
+  padding-top: 1em;
+}
+
+#game {
+  height: 60%;
+  display: grid;
+}
+
+#snek {
+  font-size: 500%;
+  margin: auto;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+#boops {
+  text-align: center;
+}
