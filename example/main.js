@@ -16,6 +16,7 @@ function createWindow() {
     width: 340,
     height: 380,
     resizable: false,
+    titleBarStyle: 'hidden',
   });
 
   mainWindow.loadURL(url.format({
@@ -42,6 +43,7 @@ app.on('activate', () => {
 
 const rpc = new DiscordRPC.Client({ transport: 'ipc' });
 let boops = 0;
+const startTimestamp = new Date();
 
 function setActivity() {
   if (!rpc)
@@ -50,7 +52,7 @@ function setActivity() {
   rpc.setActivity({
     details: `booped ${boops} times`,
     state: 'in slither party',
-    startTimestamp: new Date(),
+    startTimestamp,
     largeImageKey: 'snek_large',
     largeImageText: 'tea is delicious',
     smallImageKey: 'snek_small',
