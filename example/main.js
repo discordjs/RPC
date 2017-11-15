@@ -9,8 +9,10 @@ const DiscordRPC = require('../');
 let mainWindow;
 let rpcClient;
 
+// "secure" :/
 const hash = (d) => crypto.createHash('md5').update(d).digest('hex');
 
+// emitted from index.html
 ipc.on('ready', () => {
   if (rpcClient)
     return;
@@ -38,7 +40,6 @@ ipc.on('ready', () => {
         spectateSecret: hash('spectate'),
         instance: true,
       }).then((activity) => {
-        console.log(activity);
         if (mainWindow)
           mainWindow.webContents.send('activity', activity);
       }, console.error);
@@ -67,12 +68,8 @@ function createWindow() {
   });
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
 
-// Quit when all windows are closed.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin')
     app.quit();

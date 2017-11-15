@@ -15,7 +15,7 @@
       {}
     </code></pre>
     <script>
-      const { ipcRenderer: ipc, remote } = require('electron');
+      const { ipcRenderer: ipc } = require('electron');
       const code = document.querySelector('code');
 
       ipc.on('activity', (event, activity) => {
