@@ -16,6 +16,7 @@ h1 {
 }
 
 #snek {
+  cursor: pointer;
   font-size: 500%;
   margin: auto;
   -webkit-touch-callout: none;
