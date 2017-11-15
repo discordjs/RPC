@@ -26,9 +26,11 @@
   },
   "devDependencies": {
     "discord.js-docgen": "github:hydrabolt/discord.js-docgen",
+    "electron": "^1.7.9",
     "jsdoc-strip-async-await": "^0.1.0"
   },
   "scripts": {
-    "docs": "docgen --source src --output docs.json --jsdoc jsdoc.json --custom docgen.json"
+    "docs": "docgen --source src --output docs.json --jsdoc jsdoc.json --custom docgen.json",
+    "example": "electron example/main.js"
   }
 }

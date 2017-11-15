@@ -56,7 +56,7 @@ class RPCClient extends BaseClient {
     this.user = null;
 
     const Transport = transports[options.transport];
-    if (!Transport || (this.browser && options.transport === 'ipc'))
+    if (!Transport)
       throw new TypeError('RPC_INVALID_TRANSPORT', options.transport);
 
 
