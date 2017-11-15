@@ -9,6 +9,8 @@ const DiscordRPC = require('../');
 let mainWindow;
 let rpcClient;
 
+const hash = (d) => crypto.createHash('md5').update(d).digest('hex');
+
 ipc.on('ready', () => {
   if (rpcClient)
     return;
@@ -25,10 +27,15 @@ ipc.on('ready', () => {
         startTimestamp: Date.now(),
         endTimestamp: Date.now() + (5 * 60e3),
         largeImageKey: 'snek_large',
+        largeImageText: 'tea is delicious',
         smallImageKey: 'snek_small',
+        smallImageText: 'i am my own pillows',
         partyId: 'snek_party',
         partySize: 1,
         partyMax: 1,
+        matchSecret: hash('match'),
+        joinSecret: hash('join'),
+        spectateSecret: hash('spectate'),
         instance: true,
       }).then((activity) => {
         console.log(activity);
