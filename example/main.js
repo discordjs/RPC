@@ -3,6 +3,7 @@
 const { app, BrowserWindow, ipcMain: ipc } = require('electron');
 const path = require('path');
 const url = require('url');
+const crypto = require('crypto');
 
 const DiscordRPC = require('../');
 
