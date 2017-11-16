@@ -5,12 +5,16 @@ const clientID = '180984871685062656';
 const client = new Client({ transport: 'ipc' });
 
 client.on('ready', () => {
-  client.subscribe('GAME_JOIN', ({ secret }) => {
-    console.log('Game Join Request', secret);
+  client.subscribe('ACTIVITY_JOIN', ({ secret }) => {
+    console.log('should join game with secret:', secret);
   });
 
-  client.subscribe('GAME_SPECTATE', ({ secret }) => {
-    console.log('Game Spectate Request', secret);
+  client.subscribe('ACTIVITY_SPECTATE', ({ secret }) => {
+    console.log('should spectate game with secret:', secret);
+  });
+
+  client.subscribe('ACTIVITY_JOIN_REQUEST', (user) => {
+    console.log('user wants to join:', user);
   });
 
   client.setActivity({
