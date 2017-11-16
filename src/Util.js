@@ -11,7 +11,6 @@ function inferClass(client, object) {
   if (has(object, 'avatar'))
     return client.users.create(object);
 
-
   return object;
 }
 
@@ -26,7 +25,9 @@ function inferClasses(client, obj) {
       copy[key] = inferClass(client, value);
     }
     return copy;
-  } else { return obj; }
+  } else {
+    return obj;
+  }
 }
 
 module.exports = {

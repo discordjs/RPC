@@ -1,7 +1,7 @@
 const request = require('snekfetch');
 const transports = require('./transports');
 const { RPCCommands, RPCEvents } = require('./Constants');
-const { pid: getPid, inferClasses } = require('./Util');
+const { pid: getPid } = require('./Util');
 const {
   Collection,
   Constants,
@@ -161,7 +161,7 @@ class RPCClient extends BaseClient {
       const subid = subKey(message.evt, message.args);
       if (!this._subscriptions.has(subid))
         return;
-      this._subscriptions.get(subid)(inferClasses(message.data));
+      this._subscriptions.get(subid)(message.data);
     }
   }
 

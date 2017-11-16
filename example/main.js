@@ -9,6 +9,9 @@ const DiscordRPC = require('../');
 // "secure" :/
 const hash = (d) => crypto.createHash('md5').update(d).digest('hex');
 
+// don't change the client id if you want this example to work
+const ClientId = '180984871685062656';
+
 let mainWindow;
 
 function createWindow() {
@@ -41,6 +44,8 @@ app.on('activate', () => {
     createWindow();
 });
 
+app.setAsDefaultProtocolClient(`discord-${ClientId}`, path.join(__dirname, 'launch.sh'));
+
 const rpc = new DiscordRPC.Client({ transport: 'ipc' });
 let boops = 0;
 const startTimestamp = new Date();
@@ -70,14 +75,25 @@ function setActivity() {
 rpc.on('ready', () => {
   setActivity();
 
+  rpc.subscribe('ACTIVITY_JOIN', (req) => {
+    console.log('should join', req);
+  });
+
+  rpc.subscribe('ACTIVITY_SPECTATE', (req) => {
+    console.log('should spectate', req);
+  });
+
+  rpc.subscribe('ACTIVITY_JOIN_REQUEST', (req) => {
+    console.log('join request', req);
+  });
+
   // activity can only be set every 15 seconds
   setInterval(() => {
     setActivity();
   }, 15e3);
 });
 
-// don't change the client id if you want this example to work
-rpc.login('180984871685062656').catch(console.error);
+rpc.login(ClientId).catch(console.error);
 
 ipc.on('boop', (evt, { boops: b }) => {
   boops = b;
