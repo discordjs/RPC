@@ -1,14 +1,13 @@
-const { ipcRenderer: ipc, webFrame } = require('electron');
+const { webFrame } = require('electron');
 const snek = document.getElementById('snek');
 const counter = document.getElementById('boops');
 
 webFrame.setZoomLevelLimits(1, 1);
 
-let boops = 0;
+window.boops = 0;
 function boop() {
-  boops++;
-  counter.innerHTML = `${boops} BOOPS`;
-  ipc.send('boop', { boops });
+  window.boops++;
+  counter.innerHTML = `${window.boops} BOOPS`;
 }
 
 snek.onmousedown = () => {
