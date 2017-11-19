@@ -104,7 +104,7 @@ function getIPCPath() {
     return '\\\\?\\pipe\\discord-ipc-0';
   const env = process.env;
   const prefix = env.XDG_RUNTIME_DIR || env.TMPDIR || env.TMP || env.TEMP || '/tmp';
-  return `${prefix}/discord-ipc-0`;
+  return `${prefix.replace(/\/$/, '')}/discord-ipc-0`;
 }
 
 function findEndpoint(tries = 0) {
