@@ -40,7 +40,8 @@ app.on('activate', () => {
     createWindow();
 });
 
-app.setAsDefaultProtocolClient(`discord-${ClientId}`, path.join(__dirname, 'launch.sh'));
+// only needed for discord allowing spectate, join, ask to join
+app.setAsDefaultProtocolClient(`discord-${ClientId}`);
 
 const rpc = new DiscordRPC.Client({ transport: 'ipc' });
 const startTimestamp = new Date();

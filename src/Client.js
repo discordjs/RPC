@@ -526,7 +526,7 @@ class RPCClient extends BaseClient {
   /**
    * Destroy the client
    */
-  destroy() {
+  async destroy() {
     super.destroy();
     this.transport.close();
   }
