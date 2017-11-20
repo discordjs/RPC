@@ -66,7 +66,7 @@ class IPCTransport extends EventEmitter {
 
   close() {
     this.send({}, OPCodes.CLOSE);
-    this.socket.close();
+    this.socket.end();
   }
 
   ping() {

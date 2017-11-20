@@ -501,6 +501,12 @@ class RPCClient extends BaseClient {
     });
   }
 
+  closeJoinRequest(user) {
+    return this.request(RPCCommands.CLOSE_ACTIVITY_JOIN_REQUEST, {
+      user_id: user.id ? user.id : user,
+    });
+  }
+
   /**
    * Subscribe to an event
    * @param {string} event Name of event e.g. `MESSAGE_CREATE`
