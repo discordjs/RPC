@@ -436,7 +436,7 @@ class RPCClient extends BaseClient {
       .then(() => stop);
   }
 
-  setActivity(args, pid = getPid()) {
+  setActivity(args = {}, pid = getPid()) {
     let timestamps;
     let assets;
     let party;

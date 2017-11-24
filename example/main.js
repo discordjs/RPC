@@ -41,7 +41,7 @@ app.on('activate', () => {
 });
 
 // only needed for discord allowing spectate, join, ask to join
-app.setAsDefaultProtocolClient(`discord-${ClientId}`);
+DiscordRPC.register(ClientId);
 
 const rpc = new DiscordRPC.Client({ transport: 'ipc' });
 const startTimestamp = new Date();

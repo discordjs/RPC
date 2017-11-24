@@ -3,19 +3,31 @@
   "version": "3.0.0-beta.3",
   "description": "A simple RPC client for Discord",
   "main": "src/index.js",
+  "author": "snek <me@gus.host>",
+  "license": "MIT",
+  "homepage": "https://github.com/devsnek/discord-rpc#readme",
+  "bugs": {
+    "url": "https://github.com/devsnek/discord-rpc/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/devsnek/discord-rpc.git"
   },
-  "author": "snek <me@gus.host>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/devsnek/discord-rpc/issues"
+  "scripts": {
+    "docs": "docgen --source src --output docs.json --jsdoc jsdoc.json --custom docgen.json",
+    "example": "electron example/main.js"
   },
-  "homepage": "https://github.com/devsnek/discord-rpc#readme",
   "dependencies": {
     "discord.js": "github:hydrabolt/discord.js",
     "snekfetch": "^3.5.8"
+  },
+  "optionalDependencies": {
+    "register-scheme": "github:devsnek/node-register-scheme"
+  },
+  "devDependencies": {
+    "discord.js-docgen": "github:hydrabolt/discord.js-docgen",
+    "electron": "^1.7.9",
+    "jsdoc-strip-async-await": "^0.1.0"
   },
   "browser": {
     "net": false,
@@ -23,14 +35,5 @@
     "uws": false,
     "erlpack": false,
     "src/transports/IPC.js": false
-  },
-  "devDependencies": {
-    "discord.js-docgen": "github:hydrabolt/discord.js-docgen",
-    "electron": "^1.7.9",
-    "jsdoc-strip-async-await": "^0.1.0"
-  },
-  "scripts": {
-    "docs": "docgen --source src --output docs.json --jsdoc jsdoc.json --custom docgen.json",
-    "example": "electron example/main.js"
   }
 }
