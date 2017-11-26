@@ -17,6 +17,7 @@
 #### Official RPC extension for [Discord.js](https://discord.js.org), and all types used in this library are from Discord.js
 
 ### [Rich Presence Example](https://github.com/devsnek/discord-rpc/blob/master/example)
+### [Rich Presence Example 2](https://github.com/justdotJS/EasyRPC)
 
 ### Browser Example
 ```javascript
