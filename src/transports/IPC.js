@@ -19,13 +19,12 @@ class IPCTransport extends EventEmitter {
   }
 
   async connect({ client_id }) {
-    const socket = this.socket = await getIPC((sock) => {
-      this.emit('open');
-      sock.write(encode(OPCodes.HANDSHAKE, {
-        v: 1,
-        client_id,
-      }));
-    });
+    const socket = this.socket = await getIPC();
+    this.emit('open');
+    socket.write(encode(OPCodes.HANDSHAKE, {
+      v: 1,
+      client_id,
+    }));
     socket.pause();
     socket.on('readable', () => {
       decode(socket, ({ op, data }) => {
@@ -108,18 +107,17 @@ function getIPCPath(id) {
   return `${prefix.replace(/\/$/, '')}/discord-ipc-${id}`;
 }
 
-function getIPC(cb, id = 0) {
+function getIPC(id = 0) {
   return new Promise((resolve, reject) => {
     const path = getIPCPath(id);
     const onerror = () => {
       if (id < 10)
-        resolve(getIPC(cb, id++));
+        resolve(getIPC(id++));
       reject(new Error('Could not connect!'));
     };
     const sock = net.createConnection(path, () => {
       sock.removeListener('error', onerror);
       resolve(sock);
-      cb(sock);
     });
     sock.once('error', onerror);
   });
