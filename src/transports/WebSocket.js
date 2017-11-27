@@ -7,8 +7,6 @@ class WebSocketTransport extends EventEmitter {
     this.client = client;
     this.ws = null;
     this.tries = 0;
-    this.client_id = null;
-    this.origin = null;
   }
 
   connect(options, tries = this.tries) {

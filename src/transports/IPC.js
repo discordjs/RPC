@@ -18,10 +18,10 @@ class IPCTransport extends EventEmitter {
     this.socket = null;
   }
 
-  connect({ client_id }) {
-    const socket = this.socket = net.createConnection(getIPCPath(), () => {
+  async connect({ client_id }) {
+    const socket = this.socket = await getIPC((sock) => {
       this.emit('open');
-      socket.write(encode(OPCodes.HANDSHAKE, {
+      sock.write(encode(OPCodes.HANDSHAKE, {
         v: 1,
         client_id,
       }));
@@ -100,12 +100,29 @@ function decode(socket, callback) {
   decode(socket, callback);
 }
 
-function getIPCPath() {
+function getIPCPath(id) {
   if (process.platform === 'win32')
-    return '\\\\?\\pipe\\discord-ipc-0';
+    return `\\\\?\\pipe\\discord-ipc-${id}`;
   const env = process.env;
   const prefix = env.XDG_RUNTIME_DIR || env.TMPDIR || env.TMP || env.TEMP || '/tmp';
-  return `${prefix.replace(/\/$/, '')}/discord-ipc-0`;
+  return `${prefix.replace(/\/$/, '')}/discord-ipc-${id}`;
+}
+
+function getIPC(cb, id = 0) {
+  return new Promise((resolve, reject) => {
+    const path = getIPCPath(id);
+    const onerror = () => {
+      if (id < 10)
+        resolve(getIPC(cb, id++));
+      reject(new Error('Could not connect!'));
+    };
+    const sock = net.createConnection(path, () => {
+      sock.removeListener('error', onerror);
+      resolve(sock);
+      cb(sock);
+    });
+    sock.once('error', onerror);
+  });
 }
 
 function findEndpoint(tries = 0) {

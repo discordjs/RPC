@@ -114,11 +114,11 @@ class RPCClient extends BaseClient {
       this.transport.once('close', reject);
       this.transport.connect({ client_id: this.clientID });
     }).then(() => {
-      if (!this.clientID || !options) {
+      if (!options) {
         this.user = {};
         this.application = {};
         this.emit('ready');
-        return true;
+        return this;
       }
       if (options.accessToken)
         return this.authenticate(options.accessToken);
