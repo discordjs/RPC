@@ -12,9 +12,9 @@
   </p>
 </div>
 
-# Discord RPC Client
+# Discord.js RPC Extension
 
-#### Official RPC extension for [Discord.js](https://discord.js.org), and all types used in this library are from Discord.js
+### [Documentation](https://discord.js.org/#/docs/rpc/)
 
 ### [Rich Presence Example](https://github.com/devsnek/discord-rpc/blob/master/example)
 
@@ -30,10 +30,13 @@ const scopes = ['rpc', 'rpc.api', 'messages.read'];
 
 const params = new URLSearchParams(document.location.hash.slice(1));
 
-if (!params.has('access_token')) {
+const accessToken = params.has('access_token') ?
+  params.get('access_token') : localStorage.accessToken;
+localStorage.accessToken = accessToken;
+
+if (!accessToken) {
   // Redirect to discord to get an access token
-  document.location.href =
-    `https://discordapp.com/oauth2/authorize?response_type=token&client_id=${clientID}&scope=${scopes.join('%20')}`;
+  document.location.href = `https://discordapp.com/oauth2/authorize?response_type=token&client_id=${clientID}&scope=${scopes.join(' ')}`;
 }
 
 const client = new Client({ transport: 'websocket' });
@@ -41,8 +44,10 @@ const client = new Client({ transport: 'websocket' });
 client.on('ready', () => {
   console.log('Logged in as', client.application.name);
   console.log('Authed for user', client.user.tag);
+
+  client.selectVoiceChannel('81384788862181376');
 });
 
 // Log in to RPC with client id and access token
-client.login(clientID, { accessToken: params.get('access_token'), scopes });
+client.login(clientID, { accessToken, scopes });
 ```
