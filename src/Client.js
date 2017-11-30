@@ -13,6 +13,7 @@ const {
   BaseClient,
 } = require('discord.js');
 const { TypeError } = require('discord.js/src/errors');
+const RpcClientError = require('./RpcClientError');
 
 function createCache(create) {
   return {
@@ -153,7 +154,7 @@ class RPCClient extends BaseClient {
     } else if (this._expecting.has(message.nonce)) {
       const { resolve, reject } = this._expecting.get(message.nonce);
       if (message.evt === 'ERROR')
-        reject(new Error(message.data.message));
+        reject(new RpcClientError(message.data));
       else
         resolve(message.data);
       this._expecting.delete(message.nonce);
