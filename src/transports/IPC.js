@@ -83,19 +83,35 @@ function encode(op, data) {
   return packet;
 }
 
+let working = {
+  full: '',
+  op: undefined,
+};
+
 function decode(socket, callback) {
-  const header = socket.read(8);
-  if (!header)
+  const packet = socket.read();
+  if (!packet)
     return;
-  const op = header.readInt32LE(0);
-  const len = header.readInt32LE(4);
-  if (len < 0 || !Object.values(OPCodes).includes(op))
-    throw new Error('protocol error');
-  const raw = socket.read(len);
-  if (!raw)
-    throw new Error('data size does not match what was received');
-  const data = JSON.parse(raw);
-  callback({ op, data }); // eslint-disable-line callback-return
+
+  let op = working.op;
+  let raw;
+  if (working.full === '') {
+    op = working.op = packet.readInt32LE(0);
+    const len = packet.readInt32LE(4);
+    raw = packet.slice(8, len + 8);
+  } else {
+    raw = packet.toString();
+  }
+
+  try {
+    var data = JSON.parse(working.full + raw);
+    callback({ op, data }); // eslint-disable-line callback-return
+    working.full = '';
+    working.op = undefined;
+  } catch (err) {
+    working.full += raw;
+  }
+
   decode(socket, callback);
 }
 

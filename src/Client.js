@@ -12,8 +12,7 @@ const {
   User,
   BaseClient,
 } = require('discord.js');
-const { TypeError } = require('discord.js/src/errors');
-const RpcClientError = require('./RpcClientError');
+const { Error, TypeError } = require('discord.js/src/errors');
 
 function createCache(create) {
   return {
@@ -107,7 +106,7 @@ class RPCClient extends BaseClient {
     return new Promise((resolve, reject) => {
       this.clientID = clientID;
       this.options._login = options || {};
-      const timeout = setTimeout(() => reject(new Error('connection timeout')), 10e3);
+      const timeout = setTimeout(() => reject(new Error('RPC_CONNECTION_TIMEOUT')), 10e3);
       this.once('connected', () => {
         clearTimeout(timeout);
         resolve(this);
@@ -154,7 +153,7 @@ class RPCClient extends BaseClient {
     } else if (this._expecting.has(message.nonce)) {
       const { resolve, reject } = this._expecting.get(message.nonce);
       if (message.evt === 'ERROR')
-        reject(new RpcClientError(message.data));
+        reject(new Error('RPC_CLIENT_ERROR', message.data));
       else
         resolve(message.data);
       this._expecting.delete(message.nonce);
