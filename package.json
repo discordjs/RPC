@@ -2,6 +2,7 @@
   "name": "discord-rpc",
   "version": "3.0.0-beta.4",
   "description": "A simple RPC client for Discord",
+  "keywords": ["discord", "rpc", "rich presence", "remote procedural call"],
   "main": "src/index.js",
   "author": "snek <me@gus.host>",
   "license": "MIT",
