@@ -22,7 +22,7 @@
     "discord.js": "github:hydrabolt/discord.js",
     "snekfetch": "^3.5.8"
   },
-  "optionalDependencies": {
+  "peerDependencies": {
     "register-scheme": "github:devsnek/node-register-scheme"
   },
   "devDependencies": {
