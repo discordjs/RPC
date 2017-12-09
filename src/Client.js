@@ -153,7 +153,7 @@ class RPCClient extends BaseClient {
     } else if (this._expecting.has(message.nonce)) {
       const { resolve, reject } = this._expecting.get(message.nonce);
       if (message.evt === 'ERROR')
-        reject(new Error('RPC_CLIENT_ERROR', message.data));
+        reject(new Error('RPC_CLIENT_ERROR', `${message.data.code} ${message.data.message}`));
       else
         resolve(message.data);
       this._expecting.delete(message.nonce);
