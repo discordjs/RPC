@@ -20,8 +20,7 @@ client.on('ready', () => {
   client.setActivity({
     state: 'slithering',
     details: '🐍',
-    startTimestamp: Date.now(),
-    endTimestamp: Date.now() + 1337,
+    startTimestamp: new Date(),
     largeImageKey: 'snek_large',
     smallImageKey: 'snek_small',
     partyId: 'snek_party',

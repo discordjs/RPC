@@ -35,6 +35,8 @@
     "ws": false,
     "uws": false,
     "erlpack": false,
+    "electron": false,
+    "register-scheme": false,
     "src/transports/IPC.js": false
   }
 }
