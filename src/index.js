@@ -5,6 +5,7 @@ errors.register('RPC_CLIENT_ERROR', (m) => m);
 errors.register('RPC_CONNECTION_TIMEOUT', (m) => m);
 
 module.exports = {
+  Activity: require('./Activity'),
   Client: require('./Client'),
   register(id) {
     return util.register(`discord-${id}`);
