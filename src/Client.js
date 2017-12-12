@@ -2,16 +2,14 @@ const request = require('snekfetch');
 const transports = require('./transports');
 const { RPCCommands, RPCEvents } = require('./Constants');
 const { pid: getPid } = require('./Util');
-const {
-  Collection,
-  Constants,
-  Snowflake,
-  ClientApplication,
-  Guild,
-  Channel,
-  User,
-  BaseClient,
-} = require('discord.js');
+const Collection = require('discord.js/src/util/Collection');
+const Constants = require('discord.js/src/util/Constants');
+const Snowflake = require('discord.js/src/util/Snowflake');
+const ClientApplication = require('discord.js/src/structures/ClientApplication');
+const Guild = require('discord.js/src/structures/Guild');
+const Channel = require('discord.js/src/structures/Channel');
+const User = require('discord.js/src/structures/User');
+const BaseClient = require('discord.js/src/client/BaseClient');
 const { Error, TypeError } = require('discord.js/src/errors');
 
 function createCache(create) {

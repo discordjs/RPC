@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const { WebSocket } = require('discord.js');
+const WebSocket = require('discord.js/src/WebSocket');
 
 class WebSocketTransport extends EventEmitter {
   constructor(client) {

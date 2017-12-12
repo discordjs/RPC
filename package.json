@@ -2,7 +2,12 @@
   "name": "discord-rpc",
   "version": "3.0.0-beta.6",
   "description": "A simple RPC client for Discord",
-  "keywords": ["discord", "rpc", "rich presence", "remote procedural call"],
+  "keywords": [
+    "discord",
+    "rpc",
+    "rich presence",
+    "remote procedural call"
+  ],
   "main": "src/index.js",
   "author": "snek <me@gus.host>",
   "license": "MIT",
@@ -16,7 +21,9 @@
   },
   "scripts": {
     "docs": "docgen --source src --output docs.json --jsdoc jsdoc.json --custom docgen.json",
-    "example": "electron example/main.js"
+    "example": "electron example/main.js",
+    "build:browser": "webpack",
+    "prepublishOnly": "NODE_ENV=production npm run build:browser"
   },
   "dependencies": {
     "discord.js": "github:hydrabolt/discord.js",
@@ -28,8 +35,11 @@
   "devDependencies": {
     "discord.js-docgen": "github:hydrabolt/discord.js-docgen",
     "electron": "^1.7.9",
-    "jsdoc-strip-async-await": "^0.1.0"
+    "jsdoc-strip-async-await": "^0.1.0",
+    "uglifyjs-webpack-plugin": "^1.1.2",
+    "webpack": "^3.10.0"
   },
+  "unpkg": "./webpack/discord-rpc.min.js",
   "browser": {
     "net": false,
     "ws": false,
@@ -37,6 +47,6 @@
     "erlpack": false,
     "electron": false,
     "register-scheme": false,
-    "src/transports/IPC.js": false
+    "./src/transports/IPC.js": false
   }
 }
