@@ -9,6 +9,8 @@
     "remote procedural call"
   ],
   "main": "src/index.js",
+  "jsdelivr": "browser.js",
+  "unpkg": "browser.js",
   "author": "snek <me@gus.host>",
   "license": "MIT",
   "homepage": "https://github.com/devsnek/discord-rpc#readme",
@@ -39,7 +41,6 @@
     "uglifyjs-webpack-plugin": "^1.1.2",
     "webpack": "^3.10.0"
   },
-  "unpkg": "./webpack/discord-rpc.min.js",
   "browser": {
     "net": false,
     "ws": false,

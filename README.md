@@ -18,9 +18,9 @@
 
 ### [Rich Presence Example](https://github.com/devsnek/discord-rpc/blob/master/example)
 
-### Browser Example
+### __Browser__ Example
 ```javascript
-const { Client } = require('discord-rpc');
+const { Client } = require('discord-rpc/browser');
 
 const clientID = '187406016902594560';
 const scopes = ['rpc', 'rpc.api', 'messages.read'];

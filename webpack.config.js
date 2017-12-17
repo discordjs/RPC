@@ -20,23 +20,14 @@ if (prod) {
 module.exports = {
   entry: './src/index.js',
   output: {
-    path: path.resolve('./webpack'),
-    filename: `discord-rpc${prod ? '.min' : ''}.js`,
+    path: path.resolve('.'),
+    filename: 'browser.js',
     library: 'DiscordRPC',
     libraryTarget: 'umd',
   },
   module: {
     rules: [
       { test: /\.md$/, loader: 'ignore-loader' },
-      {
-        test: require.resolve('./package.json'),
-        use: {
-          loader: 'json-filter-loader',
-          options: {
-            used: ['version', 'homepage'],
-          },
-        },
-      },
     ],
   },
   node: {
