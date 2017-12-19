@@ -128,7 +128,7 @@ function getIPC(id = 0) {
     const path = getIPCPath(id);
     const onerror = () => {
       if (id < 10)
-        resolve(getIPC(id++));
+        resolve(getIPC(++id));
       reject(new Error('Could not connect!'));
     };
     const sock = net.createConnection(path, () => {
