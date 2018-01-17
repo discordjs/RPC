@@ -13,13 +13,13 @@
   "unpkg": "browser.js",
   "author": "snek <me@gus.host>",
   "license": "MIT",
-  "homepage": "https://github.com/devsnek/discord-rpc#readme",
+  "homepage": "https://github.com/discordjs/discord-rpc#readme",
   "bugs": {
-    "url": "https://github.com/devsnek/discord-rpc/issues"
+    "url": "https://github.com/discordjs/discord-rpc/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/devsnek/discord-rpc.git"
+    "url": "git+https://github.com/discordjs/discord-rpc.git"
   },
   "scripts": {
     "docs": "docgen --source src --output docs.json --jsdoc jsdoc.json --custom docgen.json",
