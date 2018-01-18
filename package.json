@@ -28,14 +28,14 @@
     "prepublishOnly": "NODE_ENV=production npm run build:browser"
   },
   "dependencies": {
-    "discord.js": "github:hydrabolt/discord.js",
+    "discord.js": "github:discordjs/discord.js",
     "snekfetch": "^3.5.8"
   },
   "peerDependencies": {
     "register-scheme": "github:devsnek/node-register-scheme"
   },
   "devDependencies": {
-    "discord.js-docgen": "github:hydrabolt/discord.js-docgen",
+    "discord.js-docgen": "github:discordjs/discord.js-docgen",
     "electron": "^1.7.9",
     "jsdoc-strip-async-await": "^0.1.0",
     "uglifyjs-webpack-plugin": "^1.1.2",
