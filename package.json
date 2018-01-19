@@ -13,13 +13,13 @@
   "unpkg": "browser.js",
   "author": "snek <me@gus.host>",
   "license": "MIT",
-  "homepage": "https://github.com/discordjs/discord-rpc#readme",
+  "homepage": "https://github.com/discordjs/RPC#readme",
   "bugs": {
-    "url": "https://github.com/discordjs/discord-rpc/issues"
+    "url": "https://github.com/discordjs/RPC/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/discordjs/discord-rpc.git"
+    "url": "git+https://github.com/discordjs/RPC.git"
   },
   "scripts": {
     "docs": "docgen --source src --output docs.json --jsdoc jsdoc.json --custom docgen.json",
@@ -35,7 +35,7 @@
     "register-scheme": "github:devsnek/node-register-scheme"
   },
   "devDependencies": {
-    "discord.js-docgen": "github:discordjs/discord.js-docgen",
+    "discord.js-docgen": "github:discordjs/docgen",
     "electron": "^1.7.9",
     "jsdoc-strip-async-await": "^0.1.0",
     "uglifyjs-webpack-plugin": "^1.1.2",

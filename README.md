@@ -4,7 +4,7 @@
     <a href="https://discord.gg/bRCvFy9"><img src="https://discordapp.com/api/guilds/222078108977594368/embed.png" alt="Discord server" /></a>
     <a href="https://www.npmjs.com/package/discord-rpc"><img src="https://img.shields.io/npm/v/discord-rpc.svg?maxAge=3600" alt="NPM version" /></a>
     <a href="https://www.npmjs.com/package/discord-rpc"><img src="https://img.shields.io/npm/dt/discord-rpc.svg?maxAge=3600" alt="NPM downloads" /></a>
-    <a href="https://david-dm.org/discordjs/discord-rpc"><img src="https://img.shields.io/david/discordjs/discord-rpc.svg?maxAge=3600" alt="Dependencies" /></a>
+    <a href="https://david-dm.org/discordjs/RPC"><img src="https://img.shields.io/david/discordjs/RPC.svg?maxAge=3600" alt="Dependencies" /></a>
     <a href="https://www.patreon.com/devsnek"><img src="https://img.shields.io/badge/donate-patreon-F96854.svg" alt="Patreon" /></a>
   </p>
   <p>
@@ -16,7 +16,7 @@
 
 ### [Documentation](https://discord.js.org/#/docs/rpc/)
 
-### [Rich Presence Example](https://github.com/discordjs/discord-rpc/blob/master/example)
+### [Rich Presence Example](https://github.com/discordjs/RPC/blob/master/example)
 
 ### __Browser__ Example
 ```javascript
