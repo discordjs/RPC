@@ -22,6 +22,7 @@
     "url": "git+https://github.com/discordjs/RPC.git"
   },
   "scripts": {
+    "lint": "eslint src test --ext=js",
     "docs": "docgen --source src --output docs.json --jsdoc jsdoc.json --custom docgen.json",
     "example": "electron example/main.js",
     "build:browser": "webpack",
@@ -37,6 +38,7 @@
   "devDependencies": {
     "discord.js-docgen": "github:discordjs/docgen",
     "electron": "^1.7.9",
+    "eslint": "^4.18.1",
     "jsdoc-strip-async-await": "^0.1.0",
     "uglifyjs-webpack-plugin": "^1.1.2",
     "webpack": "^3.10.0"

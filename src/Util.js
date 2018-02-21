@@ -1,3 +1,5 @@
+'use strict';
+
 let register;
 try {
   const { app } = require('electron');
@@ -14,7 +16,6 @@ if (typeof register !== 'function')
 function pid() {
   if (typeof process !== undefined)
     return process.pid;
-
   return null;
 }
 module.exports = {

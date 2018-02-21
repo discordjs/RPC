@@ -1,3 +1,5 @@
+'use strict';
+
 const errors = require('discord.js/src/errors');
 const util = require('./Util');
 errors.register('RPC_INVALID_TRANSPORT', (name) => `Invalid transport: ${name}`);

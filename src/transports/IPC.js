@@ -1,3 +1,5 @@
+'use strict';
+
 const net = require('net');
 const EventEmitter = require('events');
 const request = require('snekfetch');
@@ -129,7 +131,8 @@ function getIPC(id = 0) {
     const onerror = () => {
       if (id < 10)
         resolve(getIPC(id + 1));
-      reject(new Error('Could not connect!'));
+      else
+        reject(new Error('Could not connect'));
     };
     const sock = net.createConnection(path, () => {
       sock.removeListener('error', onerror);

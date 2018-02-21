@@ -1,3 +1,5 @@
+'use strict';
+
 const EventEmitter = require('events');
 const WebSocket = require('discord.js/src/WebSocket');
 

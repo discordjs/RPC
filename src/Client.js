@@ -1,3 +1,5 @@
+'use strict';
+
 const request = require('snekfetch');
 const transports = require('./transports');
 const { RPCCommands, RPCEvents } = require('./Constants');
@@ -105,6 +107,7 @@ class RPCClient extends BaseClient {
       this.clientID = clientID;
       this.options._login = options || {};
       const timeout = setTimeout(() => reject(new Error('RPC_CONNECTION_TIMEOUT')), 10e3);
+      timeout.unref();
       this.once('connected', () => {
         clearTimeout(timeout);
         resolve(this);
@@ -274,7 +277,7 @@ class RPCClient extends BaseClient {
    */
   getChannels(timeout) {
     return this.request(RPCCommands.GET_CHANNELS, { timeout })
-      .then(async({ channels }) => {
+      .then(async ({ channels }) => {
         const guilds = new Collection();
         const c = new Collection();
         for (const channel of channels) {

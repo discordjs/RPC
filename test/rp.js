@@ -1,3 +1,11 @@
+'use strict';
+
+/* eslint-disable no-console */
+
+try {
+  require('wtfnode').init();
+} catch (err) {} // eslint-disable-line no-empty
+
 const { Client } = require('../');
 
 const clientID = '180984871685062656';

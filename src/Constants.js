@@ -1,3 +1,5 @@
+'use strict';
+
 exports.RPCCommands = keyMirror([
   'DISPATCH',
   'AUTHORIZE',
