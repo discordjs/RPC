@@ -1,5 +1,6 @@
 'use strict';
 
+const timers = require('timers');
 const request = require('snekfetch');
 const transports = require('./transports');
 const { RPCCommands, RPCEvents } = require('./Constants');
@@ -106,10 +107,10 @@ class RPCClient extends BaseClient {
     return new Promise((resolve, reject) => {
       this.clientID = clientID;
       this.options._login = options || {};
-      const timeout = setTimeout(() => reject(new Error('RPC_CONNECTION_TIMEOUT')), 10e3);
+      const timeout = timers.setTimeout(() => reject(new Error('RPC_CONNECTION_TIMEOUT')), 10e3);
       timeout.unref();
       this.once('connected', () => {
-        clearTimeout(timeout);
+        timers.clearTimeout(timeout);
         resolve(this);
       });
       this.transport.once('close', reject);
