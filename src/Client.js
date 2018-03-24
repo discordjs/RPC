@@ -294,6 +294,44 @@ class RPCClient extends BaseClient {
   }
 
   /**
+   * @typedef {CertifiedDevice}
+   * @prop {string} type One of `AUDIO_INPUT`, `AUDIO_OUTPUT`, `VIDEO_INPUT`
+   * @prop {string} uuid This device's Windows UUID
+   * @prop {object} vendor Vendor information
+   * @prop {string} vendor.name Vendor's name
+   * @prop {string} vendor.url Vendor's url
+   * @prop {object} model Model information
+   * @prop {string} model.name Model's name
+   * @prop {string} model.url Model's url
+   * @prop {string[]} related Array of related product's Windows UUIDs
+   * @prop {boolean} echoCancellation If the device has echo cancellation
+   * @prop {boolean} noiseSuppression If the device has noise suppression
+   * @prop {boolean} automaticGainControl If the device has automatic gain control
+   * @prop {boolean} hardwareMute If the device has a hardware mute
+   */
+
+  /**
+   * Tell discord which devices are certified
+   * @param {CertifiedDevice[]} devices Certified devices to send to discord
+   * @returns {Promise}
+   */
+  setCertifiedDevices(devices) {
+    return this.request(RPCCommands.SET_CERTIFIED_DEVICES, {
+      devices: devices.map((d) => ({
+        type: Constants.DeviceTypes[d.type],
+        id: d.uuid,
+        vendor: d.vendor,
+        model: d.model,
+        related: d.related,
+        echo_cancellation: d.echoCancellation,
+        noise_suppression: d.noiseSuppression,
+        automatic_gain_control: d.automaticGainControl,
+        hardware_mute: d.hardwareMute,
+      })),
+    });
+  }
+
+  /**
    * @typedef {UserVoiceSettings}
    * @prop {Snowflake} id ID of the user these settings apply to
    * @prop {?Object} [pan] Pan settings, an object with `left` and `right` set between 0.0 and 1.0, inclusive
