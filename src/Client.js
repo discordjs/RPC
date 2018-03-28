@@ -530,6 +530,12 @@ class RPCClient extends BaseClient {
     });
   }
 
+  clearActivity(pid = getPid()) {
+    return this.request(RPCCommands.SET_ACTIVITY, {
+      pid,
+    });
+  }
+
   sendJoinInvite(user) {
     return this.request(RPCCommands.SEND_ACTIVITY_JOIN_INVITE, {
       user_id: user.id ? user.id : user,
