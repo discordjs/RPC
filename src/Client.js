@@ -94,6 +94,7 @@ class RPCClient extends BaseClient {
    * @param {string} [accessToken] Access token
    * @param {string} [rpcToken] RPC token
    * @param {string} [tokenEndpoint] Token endpoint
+   * @param {string[]} [scopes] Scopes to authorize with
    */
 
   /**
