@@ -529,6 +529,12 @@ class RPCClient extends BaseClient {
     });
   }
 
+  /**
+   * Clears the currently set presence, if any. This will hide the "Playing X" message 
+   * displayed below the user's name.
+   * @param {number} The application's process ID. Defaults to the executing process' PID.
+   * @returns {Promise}
+   */
   clearActivity(pid = getPid()) {
     return this.request(RPCCommands.SET_ACTIVITY, {
       pid,
