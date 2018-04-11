@@ -20,41 +20,45 @@ class IPCTransport extends EventEmitter {
     this.socket = null;
   }
 
-  async connect({ client_id }) {
-    const socket = this.socket = await getIPC();
-    this.emit('open');
-    socket.write(encode(OPCodes.HANDSHAKE, {
-      v: 1,
-      client_id,
-    }));
-    socket.pause();
-    socket.on('readable', () => {
-      decode(socket, ({ op, data }) => {
-        switch (op) {
-          case OPCodes.PING:
-            this.send(data, OPCodes.PONG);
-            break;
-          case OPCodes.FRAME:
-            if (!data)
-              return;
-            if (data.cmd === 'AUTHORIZE' && data.evt !== 'ERROR') {
-              findEndpoint().then((endpoint) => {
-                this.client.rest.endpoint = endpoint;
-                this.client.rest.versioned = false;
-              });
-            }
-            this.emit('message', data);
-            break;
-          case OPCodes.CLOSE:
-            this.emit('close', data);
-            break;
-          default:
-            break;
-        }
+  connect({ client_id }) {
+    getIPC().then((socket) => {
+      this.socket = socket;
+      this.emit('open');
+      socket.write(encode(OPCodes.HANDSHAKE, {
+        v: 1,
+        client_id,
+      }));
+      socket.pause();
+      socket.on('readable', () => {
+        decode(socket, ({ op, data }) => {
+          switch (op) {
+            case OPCodes.PING:
+              this.send(data, OPCodes.PONG);
+              break;
+            case OPCodes.FRAME:
+              if (!data)
+                return;
+              if (data.cmd === 'AUTHORIZE' && data.evt !== 'ERROR') {
+                findEndpoint().then((endpoint) => {
+                  this.client.rest.endpoint = endpoint;
+                  this.client.rest.versioned = false;
+                });
+              }
+              this.emit('message', data);
+              break;
+            case OPCodes.CLOSE:
+              this.emit('close', data);
+              break;
+            default:
+              break;
+          }
+        });
       });
+      socket.on('close', this.onClose.bind(this));
+      socket.on('error', this.onClose.bind(this));
+    }).catch((err) => {
+      this.emit('error', err);
     });
-    socket.on('close', this.onClose.bind(this));
-    socket.on('error', this.onClose.bind(this));
   }
 
   onClose(e) {
