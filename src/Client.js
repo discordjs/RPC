@@ -5,6 +5,7 @@ const request = require('snekfetch');
 const transports = require('./transports');
 const { RPCCommands, RPCEvents } = require('./Constants');
 const { pid: getPid } = require('./Util');
+const PartialUser = require('./structures/PartialUser');
 const Collection = require('discord.js/src/util/Collection');
 const Constants = require('discord.js/src/util/Constants');
 const Snowflake = require('discord.js/src/util/Snowflake');
@@ -152,7 +153,9 @@ class RPCClient extends BaseClient {
    */
   _onRpcMessage(message) {
     if (message.cmd === RPCCommands.DISPATCH && message.evt === RPCEvents.READY) {
-      this.emit('connected');
+      this.emit('connected', {
+        user: new PartialUser(message.data.user)
+      });
     } else if (this._expecting.has(message.nonce)) {
       const { resolve, reject } = this._expecting.get(message.nonce);
       if (message.evt === 'ERROR')
@@ -531,7 +534,7 @@ class RPCClient extends BaseClient {
   }
 
   /**
-   * Clears the currently set presence, if any. This will hide the "Playing X" message 
+   * Clears the currently set presence, if any. This will hide the "Playing X" message
    * displayed below the user's name.
    * @param {number} [pid] The application's process ID. Defaults to the executing process' PID.
    * @returns {Promise}
