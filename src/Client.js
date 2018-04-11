@@ -1,10 +1,10 @@
 'use strict';
 
-const {setTimeout, clearTimeout} = require('timers');
+const { setTimeout, clearTimeout } = require('timers');
 const request = require('snekfetch');
 const transports = require('./transports');
-const {RPCCommands, RPCEvents} = require('./Constants');
-const {pid: getPid} = require('./Util');
+const { RPCCommands, RPCEvents } = require('./Constants');
+const { pid: getPid } = require('./Util');
 const PartialUser = require('./structures/PartialUser');
 const Collection = require('discord.js/src/util/Collection');
 const Constants = require('discord.js/src/util/Constants');
@@ -14,7 +14,7 @@ const Guild = require('discord.js/src/structures/Guild');
 const Channel = require('discord.js/src/structures/Channel');
 const User = require('discord.js/src/structures/User');
 const BaseClient = require('discord.js/src/client/BaseClient');
-const {Error, TypeError} = require('discord.js/src/errors');
+const { Error, TypeError } = require('discord.js/src/errors');
 
 function createCache(create) {
   return {
