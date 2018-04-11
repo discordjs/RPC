@@ -13,6 +13,8 @@ const clientID = '180984871685062656';
 const client = new Client({ transport: 'ipc' });
 
 client.on('ready', () => {
+  console.log(client);
+
   client.subscribe('ACTIVITY_JOIN', ({ secret }) => {
     console.log('should join game with secret:', secret);
   });

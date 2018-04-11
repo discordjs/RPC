@@ -120,8 +120,8 @@ function decode(socket, callback) {
 function getIPCPath(id) {
   if (process.platform === 'win32')
     return `\\\\?\\pipe\\discord-ipc-${id}`;
-  const env = process.env;
-  const prefix = env.XDG_RUNTIME_DIR || env.TMPDIR || env.TMP || env.TEMP || '/tmp';
+  const { env: { XDG_RUNTIME_DIR, TMPDIR, TMP, TEMP } } = process;
+  const prefix = XDG_RUNTIME_DIR || TMPDIR || TMP || TEMP || '/tmp';
   return `${prefix.replace(/\/$/, '')}/discord-ipc-${id}`;
 }
 

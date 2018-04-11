@@ -24,6 +24,10 @@ function createCache(create) {
   };
 }
 
+function subKey(event, args) {
+  return `${event}${JSON.stringify(args)}`;
+}
+
 /**
  * @typedef {RPCClientOptions}
  * @extends {ClientOptions}
@@ -82,7 +86,6 @@ class RPCClient extends BaseClient {
      */
     this._subscriptions = new Map();
 
-    // Undocumented because they should not be used
     this.users = createCache((data) => new User(this, data));
     this.channels = createCache((data, guild) => Channel.create(this, data, guild));
     this.guilds = createCache((data) => new Guild(this, data));
@@ -100,7 +103,8 @@ class RPCClient extends BaseClient {
   /**
    * Log in
    * @param {string} clientID Client ID
-   * @param {RPCLoginOptions} options Options for authentication. You must provide at least one of the props to log in.
+   * @param {RPCLoginOptions} options Options for authentication.
+   * At least one property must be provided to perform login.
    * @example client.login('1234567', { clientSecret: 'abcdef123' });
    * @returns {Promise<RPCClient>}
    */
@@ -118,8 +122,6 @@ class RPCClient extends BaseClient {
       this.transport.connect({ client_id: this.clientID });
     }).then(() => {
       if (!options) {
-        this.user = {};
-        this.application = {};
         this.emit('ready');
         return this;
       }
@@ -153,6 +155,8 @@ class RPCClient extends BaseClient {
   _onRpcMessage(message) {
     if (message.cmd === RPCCommands.DISPATCH && message.evt === RPCEvents.READY) {
       this.emit('connected');
+      if (message.data.user)
+        this.user = this.users.create(message.data.user);
     } else if (this._expecting.has(message.nonce)) {
       const { resolve, reject } = this._expecting.get(message.nonce);
       if (message.evt === 'ERROR')
@@ -197,7 +201,7 @@ class RPCClient extends BaseClient {
       const r = await request.post(tokenEndpoint).send({ code });
       return this.authenticate(r.body.access_token);
     } else if (clientSecret) {
-      const { access_token } = await this.api.oauth2.token.post({
+      const { access_token: accessToken } = await this.api.oauth2.token.post({
         query: {
           client_id: this.clientID,
           client_secret: clientSecret,
@@ -206,7 +210,7 @@ class RPCClient extends BaseClient {
         },
         auth: false,
       });
-      return this.authenticate(access_token);
+      return this.authenticate(accessToken);
     }
 
     return { code };
@@ -223,7 +227,10 @@ class RPCClient extends BaseClient {
     return this.request('AUTHENTICATE', { access_token: accessToken })
       .then(({ application, user }) => {
         this.application = new ClientApplication(this, application);
-        this.user = this.users.create(user);
+        if (this.user)
+          this.user._patch(user);
+        else
+          this.user = this.users.create(user);
         this.emit('ready');
         return this;
       });
@@ -283,11 +290,11 @@ class RPCClient extends BaseClient {
         const guilds = new Collection();
         const c = new Collection();
         for (const channel of channels) {
-          const guild_id = channel.guild_id;
+          const { guild_id: guildId } = channel;
 
-          if (guild_id && !guilds.has(guild_id))
+          if (guildId && !guilds.has(guildId))
             // eslint-disable-next-line no-await-in-loop
-            guilds.set(guild_id, await this.getGuild(guild_id));
+            guilds.set(guildId, await this.getGuild(guildId));
           c.set(channel.id, this.channels.create(channel, guilds.get(channel.guild_id)));
         }
         return c;
@@ -335,7 +342,8 @@ class RPCClient extends BaseClient {
   /**
    * @typedef {UserVoiceSettings}
    * @prop {Snowflake} id ID of the user these settings apply to
-   * @prop {?Object} [pan] Pan settings, an object with `left` and `right` set between 0.0 and 1.0, inclusive
+   * @prop {?Object} [pan] Pan settings, an object with `left` and `right` set between
+   * 0.0 and 1.0, inclusive
    * @prop {?number} [volume=100] The volume
    * @prop {bool} [mute] If the user is muted
    */
@@ -360,7 +368,8 @@ class RPCClient extends BaseClient {
    * @param {Snowflake} id ID of the voice channel
    * @param {Object} [options] Options
    * @param {number} [options.timeout] Timeout for the command
-   * @param {boolean} [options.force] Force the move, should only be done if you have explicit permission from the user.
+   * @param {boolean} [options.force] Force this move. This should only be done if you
+   * have explicit permission from the user.
    * @returns {Promise}
    */
   selectVoiceChannel(id, { timeout, force = false } = {}) {
@@ -372,7 +381,8 @@ class RPCClient extends BaseClient {
    * @param {Snowflake} id ID of the voice channel
    * @param {Object} [options] Options
    * @param {number} [options.timeout] Timeout for the command
-   * @param {boolean} [options.force] Force the move, should only be done if you have explicit permission from the user.
+   * @param {boolean} [options.force] Force this move. This should only be done if you
+   * have explicit permission from the user.
    * @returns {Promise}
    */
   selectTextChannel(id, { timeout, force = false } = {}) {
@@ -408,7 +418,8 @@ class RPCClient extends BaseClient {
           autoThreshold: s.mode.auto_threshold,
           threshold: s.mode.threshold,
           shortcut: s.mode.shortcut.map((sc) => ({
-            name: sc.name, code: sc.code,
+            name: sc.name,
+            code: sc.code,
             type: Object.keys(Constants.KeyTypes)[sc.type],
           })),
           delay: s.mode.delay,
@@ -417,8 +428,8 @@ class RPCClient extends BaseClient {
   }
 
   /**
-   * Set current voice settings, overriding the current settings until this session disconnects. Also locks the settings
-   * for any other rpc sessions which may be connected
+   * Set current voice settings, overriding the current settings until this session disconnects.
+   * This also locks the settings for any other rpc sessions which may be connected.
    * @param {Object} args Settings
    * @returns {Promise}
    */
@@ -444,7 +455,8 @@ class RPCClient extends BaseClient {
         auto_threshold: args.mode.autoThreshold,
         threshold: args.mode.threshold,
         shortcut: args.mode.shortcut.map((sc) => ({
-          name: sc.name, code: sc.code,
+          name: sc.name,
+          code: sc.code,
           type: Constants.KeyTypes[sc.type.toUpperCase()],
         })),
         delay: args.mode.delay,
@@ -468,7 +480,8 @@ class RPCClient extends BaseClient {
     };
     this._subscriptions.set(subid, ({ shortcut }) => {
       const keys = shortcut.map((sc) => ({
-        name: sc.name, code: sc.code,
+        name: sc.name,
+        code: sc.code,
         type: Object.keys(Constants.KeyTypes)[sc.type],
       }));
       callback(keys, stop);
@@ -531,7 +544,7 @@ class RPCClient extends BaseClient {
   }
 
   /**
-   * Clears the currently set presence, if any. This will hide the "Playing X" message 
+   * Clears the currently set presence, if any. This will hide the "Playing X" message
    * displayed below the user's name.
    * @param {number} [pid] The application's process ID. Defaults to the executing process' PID.
    * @returns {Promise}
@@ -589,10 +602,6 @@ class RPCClient extends BaseClient {
     super.destroy();
     this.transport.close();
   }
-}
-
-function subKey(event, args) {
-  return `${event}${JSON.stringify(args)}`;
 }
 
 module.exports = RPCClient;
