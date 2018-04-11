@@ -1,10 +1,11 @@
 'use strict';
 
-const { setTimeout, clearTimeout } = require('timers');
+const {setTimeout, clearTimeout} = require('timers');
 const request = require('snekfetch');
 const transports = require('./transports');
-const { RPCCommands, RPCEvents } = require('./Constants');
-const { pid: getPid } = require('./Util');
+const {RPCCommands, RPCEvents} = require('./Constants');
+const {pid: getPid} = require('./Util');
+const PartialUser = require('./structures/PartialUser');
 const Collection = require('discord.js/src/util/Collection');
 const Constants = require('discord.js/src/util/Constants');
 const Snowflake = require('discord.js/src/util/Snowflake');
@@ -13,7 +14,7 @@ const Guild = require('discord.js/src/structures/Guild');
 const Channel = require('discord.js/src/structures/Channel');
 const User = require('discord.js/src/structures/User');
 const BaseClient = require('discord.js/src/client/BaseClient');
-const { Error, TypeError } = require('discord.js/src/errors');
+const {Error, TypeError} = require('discord.js/src/errors');
 
 function createCache(create) {
   return {
@@ -40,7 +41,7 @@ class RPCClient extends BaseClient {
    * You must provide a transport
    */
   constructor(options = {}) {
-    super(Object.assign({ _tokenType: 'Bearer' }, options));
+    super(Object.assign({_tokenType: 'Bearer'}, options));
     this.accessToken = null;
     this.clientID = null;
 
@@ -115,7 +116,7 @@ class RPCClient extends BaseClient {
         resolve(this);
       });
       this.transport.once('close', reject);
-      this.transport.connect({ client_id: this.clientID });
+      this.transport.connect({client_id: this.clientID});
     }).then(() => {
       if (!options) {
         this.user = {};
@@ -140,8 +141,8 @@ class RPCClient extends BaseClient {
   request(cmd, args, evt) {
     return new Promise((resolve, reject) => {
       const nonce = Snowflake.generate();
-      this.transport.send({ cmd, args, evt, nonce });
-      this._expecting.set(nonce, { resolve, reject });
+      this.transport.send({cmd, args, evt, nonce});
+      this._expecting.set(nonce, {resolve, reject});
     });
   }
 
@@ -152,9 +153,11 @@ class RPCClient extends BaseClient {
    */
   _onRpcMessage(message) {
     if (message.cmd === RPCCommands.DISPATCH && message.evt === RPCEvents.READY) {
-      this.emit('connected');
+      this.emit('connected', {
+        user: new PartialUser(message.data.user)
+      });
     } else if (this._expecting.has(message.nonce)) {
-      const { resolve, reject } = this._expecting.get(message.nonce);
+      const {resolve, reject} = this._expecting.get(message.nonce);
       if (message.evt === 'ERROR')
         reject(new Error('RPC_CLIENT_ERROR', `${message.data.code} ${message.data.message}`));
       else
@@ -174,12 +177,12 @@ class RPCClient extends BaseClient {
    * @returns {Promise}
    * @private
    */
-  async authorize({ rpcToken, scopes, clientSecret, tokenEndpoint }) {
+  async authorize({rpcToken, scopes, clientSecret, tokenEndpoint}) {
     if (tokenEndpoint && !rpcToken) {
       rpcToken = await request.get(tokenEndpoint).then((r) => r.body.rpc_token);
     } else if (clientSecret && rpcToken === true) {
       rpcToken = await this.api.oauth2.token.rpc.post({
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         data: {
           client_id: this.clientID,
           client_secret: clientSecret,
@@ -187,17 +190,17 @@ class RPCClient extends BaseClient {
       });
     }
 
-    const { code } = await this.request('AUTHORIZE', {
+    const {code} = await this.request('AUTHORIZE', {
       client_id: this.clientID,
       scopes,
       rpc_token: rpcToken,
     });
 
     if (tokenEndpoint) {
-      const r = await request.post(tokenEndpoint).send({ code });
+      const r = await request.post(tokenEndpoint).send({code});
       return this.authenticate(r.body.access_token);
     } else if (clientSecret) {
-      const { access_token } = await this.api.oauth2.token.post({
+      const {access_token} = await this.api.oauth2.token.post({
         query: {
           client_id: this.clientID,
           client_secret: clientSecret,
@@ -209,7 +212,7 @@ class RPCClient extends BaseClient {
       return this.authenticate(access_token);
     }
 
-    return { code };
+    return {code};
   }
 
   /**
@@ -220,8 +223,8 @@ class RPCClient extends BaseClient {
    */
   authenticate(accessToken) {
     this.accessToken = accessToken;
-    return this.request('AUTHENTICATE', { access_token: accessToken })
-      .then(({ application, user }) => {
+    return this.request('AUTHENTICATE', {access_token: accessToken})
+      .then(({application, user}) => {
         this.application = new ClientApplication(this, application);
         this.user = this.users.create(user);
         this.emit('ready');
@@ -237,7 +240,7 @@ class RPCClient extends BaseClient {
    * @returns {Promise<Guild>}
    */
   getGuild(id, timeout) {
-    return this.request(RPCCommands.GET_GUILD, { guild_id: id, timeout })
+    return this.request(RPCCommands.GET_GUILD, {guild_id: id, timeout})
       .then((guild) => this.guilds.create(guild));
   }
 
@@ -247,8 +250,8 @@ class RPCClient extends BaseClient {
    * @returns {Promise<Collection<Snowflake, Guild>>}
    */
   getGuilds(timeout) {
-    return this.request(RPCCommands.GET_GUILDS, { timeout })
-      .then(({ guilds }) => {
+    return this.request(RPCCommands.GET_GUILDS, {timeout})
+      .then(({guilds}) => {
         const c = new Collection();
         for (const guild of guilds)
           c.set(guild.id, this.guilds.create(guild));
@@ -263,7 +266,7 @@ class RPCClient extends BaseClient {
    * @returns {Promise<Channel>}
    */
   getChannel(id, timeout) {
-    return this.request(RPCCommands.GET_CHANNEL, { channel_id: id, timeout })
+    return this.request(RPCCommands.GET_CHANNEL, {channel_id: id, timeout})
       .then((channel) => {
         if (channel.guild_id)
           return this.getGuild(channel.guild_id);
@@ -278,15 +281,15 @@ class RPCClient extends BaseClient {
    * @returns {Promise<Collection<Snowflake, Channel>>}
    */
   getChannels(timeout) {
-    return this.request(RPCCommands.GET_CHANNELS, { timeout })
-      .then(async ({ channels }) => {
+    return this.request(RPCCommands.GET_CHANNELS, {timeout})
+      .then(async ({channels}) => {
         const guilds = new Collection();
         const c = new Collection();
         for (const channel of channels) {
           const guild_id = channel.guild_id;
 
           if (guild_id && !guilds.has(guild_id))
-            // eslint-disable-next-line no-await-in-loop
+          // eslint-disable-next-line no-await-in-loop
             guilds.set(guild_id, await this.getGuild(guild_id));
           c.set(channel.id, this.channels.create(channel, guilds.get(channel.guild_id)));
         }
@@ -363,8 +366,8 @@ class RPCClient extends BaseClient {
    * @param {boolean} [options.force] Force the move, should only be done if you have explicit permission from the user.
    * @returns {Promise}
    */
-  selectVoiceChannel(id, { timeout, force = false } = {}) {
-    return this.request(RPCCommands.SELECT_VOICE_CHANNEL, { channel_id: id, timeout, force });
+  selectVoiceChannel(id, {timeout, force = false} = {}) {
+    return this.request(RPCCommands.SELECT_VOICE_CHANNEL, {channel_id: id, timeout, force});
   }
 
   /**
@@ -375,8 +378,8 @@ class RPCClient extends BaseClient {
    * @param {boolean} [options.force] Force the move, should only be done if you have explicit permission from the user.
    * @returns {Promise}
    */
-  selectTextChannel(id, { timeout, force = false } = {}) {
-    return this.request(RPCCommands.SELECT_TEXT_CHANNEL, { channel_id: id, timeout, force });
+  selectTextChannel(id, {timeout, force = false} = {}) {
+    return this.request(RPCCommands.SELECT_TEXT_CHANNEL, {channel_id: id, timeout, force});
   }
 
   /**
@@ -464,16 +467,16 @@ class RPCClient extends BaseClient {
     const subid = subKey(RPCEvents.CAPTURE_SHORTCUT_CHANGE);
     const stop = () => {
       this._subscriptions.delete(subid);
-      return this.request(RPCCommands.CAPTURE_SHORTCUT, { action: 'STOP' });
+      return this.request(RPCCommands.CAPTURE_SHORTCUT, {action: 'STOP'});
     };
-    this._subscriptions.set(subid, ({ shortcut }) => {
+    this._subscriptions.set(subid, ({shortcut}) => {
       const keys = shortcut.map((sc) => ({
         name: sc.name, code: sc.code,
         type: Object.keys(Constants.KeyTypes)[sc.type],
       }));
       callback(keys, stop);
     });
-    return this.request(RPCCommands.CAPTURE_SHORTCUT, { action: 'START' })
+    return this.request(RPCCommands.CAPTURE_SHORTCUT, {action: 'START'})
       .then(() => stop);
   }
 
@@ -504,7 +507,7 @@ class RPCClient extends BaseClient {
       };
     }
     if (args.partySize || args.partyId || args.partyMax) {
-      party = { id: args.partyId };
+      party = {id: args.partyId};
       if (args.partySize || args.partyMax)
         party.size = [args.partySize, args.partyMax];
     }
@@ -531,7 +534,7 @@ class RPCClient extends BaseClient {
   }
 
   /**
-   * Clears the currently set presence, if any. This will hide the "Playing X" message 
+   * Clears the currently set presence, if any. This will hide the "Playing X" message
    * displayed below the user's name.
    * @param {number} [pid] The application's process ID. Defaults to the executing process' PID.
    * @returns {Promise}
