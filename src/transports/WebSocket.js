@@ -12,15 +12,16 @@ class WebSocketTransport extends EventEmitter {
   }
 
   connect(options, tries = this.tries) {
-    if (this.connected)
+    if (this.connected) {
       return;
+    }
     const port = 6463 + (tries % 10);
     this.hostAndPort = `127.0.0.1:${port}`;
     const cid = this.client.clientID;
     const ws = this.ws = WebSocket.create(
       `ws://${this.hostAndPort}/`,
       { v: 1, client_id: cid || null },
-      typeof window === 'undefined' ? { origin: this.client.options._login.origin } : undefined
+      typeof window === 'undefined' ? { origin: this.client.options._login.origin } : undefined,
     );
     ws.onopen = this.onOpen.bind(this);
     ws.onclose = ws.onerror = this.onClose.bind(this);
@@ -28,14 +29,16 @@ class WebSocketTransport extends EventEmitter {
   }
 
   send(data) {
-    if (!this.ws)
+    if (!this.ws) {
       return;
+    }
     this.ws.send(WebSocket.pack(data));
   }
 
   close() {
-    if (!this.ws)
+    if (!this.ws) {
       return;
+    }
     this.ws.close();
   }
 
@@ -56,10 +59,12 @@ class WebSocketTransport extends EventEmitter {
       this.ws.close();
     } catch (err) {} // eslint-disable-line no-empty
     const derr = e.code >= 4000 && e.code < 5000;
-    if (!e.code || derr)
+    if (!e.code || derr) {
       this.emit('close', e);
-    if (!derr)
+    }
+    if (!derr) {
       setTimeout(() => this.connect(undefined, e.code === 1006 ? ++this.tries : 0), 250);
+    }
   }
 }
 

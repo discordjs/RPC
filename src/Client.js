@@ -3,7 +3,7 @@
 const { setTimeout, clearTimeout } = require('timers');
 const request = require('snekfetch');
 const transports = require('./transports');
-const { RPCCommands, RPCEvents } = require('./Constants');
+const { RPCCommands, RPCEvents, LobbyTypes } = require('./Constants');
 const { pid: getPid } = require('./Util');
 const Collection = require('discord.js/src/util/Collection');
 const Constants = require('discord.js/src/util/Constants');
@@ -61,8 +61,9 @@ class RPCClient extends BaseClient {
     this.user = null;
 
     const Transport = transports[options.transport];
-    if (!Transport)
+    if (!Transport) {
       throw new TypeError('RPC_INVALID_TRANSPORT', options.transport);
+    }
 
 
     /**
@@ -125,8 +126,9 @@ class RPCClient extends BaseClient {
         this.emit('ready');
         return this;
       }
-      if (options.accessToken)
+      if (options.accessToken) {
         return this.authenticate(options.accessToken);
+      }
       return this.authorize(options);
     });
   }
@@ -155,19 +157,22 @@ class RPCClient extends BaseClient {
   _onRpcMessage(message) {
     if (message.cmd === RPCCommands.DISPATCH && message.evt === RPCEvents.READY) {
       this.emit('connected');
-      if (message.data.user)
+      if (message.data.user) {
         this.user = this.users.create(message.data.user);
+      }
     } else if (this._expecting.has(message.nonce)) {
       const { resolve, reject } = this._expecting.get(message.nonce);
-      if (message.evt === 'ERROR')
+      if (message.evt === 'ERROR') {
         reject(new Error('RPC_CLIENT_ERROR', `${message.data.code} ${message.data.message}`));
-      else
+      } else {
         resolve(message.data);
+      }
       this._expecting.delete(message.nonce);
     } else {
       const subid = subKey(message.evt, message.args);
-      if (!this._subscriptions.has(subid))
+      if (!this._subscriptions.has(subid)) {
         return;
+      }
       this._subscriptions.get(subid)(message.data);
     }
   }
@@ -227,10 +232,11 @@ class RPCClient extends BaseClient {
     return this.request('AUTHENTICATE', { access_token: accessToken })
       .then(({ application, user }) => {
         this.application = new ClientApplication(this, application);
-        if (this.user)
+        if (this.user) {
           this.user._patch(user);
-        else
+        } else {
           this.user = this.users.create(user);
+        }
         this.emit('ready');
         return this;
       });
@@ -257,8 +263,9 @@ class RPCClient extends BaseClient {
     return this.request(RPCCommands.GET_GUILDS, { timeout })
       .then(({ guilds }) => {
         const c = new Collection();
-        for (const guild of guilds)
+        for (const guild of guilds) {
           c.set(guild.id, this.guilds.create(guild));
+        }
         return c;
       });
   }
@@ -272,8 +279,9 @@ class RPCClient extends BaseClient {
   getChannel(id, timeout) {
     return this.request(RPCCommands.GET_CHANNEL, { channel_id: id, timeout })
       .then((channel) => {
-        if (channel.guild_id)
+        if (channel.guild_id) {
           return this.getGuild(channel.guild_id);
+        }
 
         return Channel.create(this, channel);
       });
@@ -292,9 +300,10 @@ class RPCClient extends BaseClient {
         for (const channel of channels) {
           const { guild_id: guildId } = channel;
 
-          if (guildId && !guilds.has(guildId))
+          if (guildId && !guilds.has(guildId)) {
             // eslint-disable-next-line no-await-in-loop
             guilds.set(guildId, await this.getGuild(guildId));
+          }
           c.set(channel.id, this.channels.create(channel, guilds.get(channel.guild_id)));
         }
         return c;
@@ -500,10 +509,12 @@ class RPCClient extends BaseClient {
         start: args.startTimestamp,
         end: args.endTimestamp,
       };
-      if (timestamps.start instanceof Date)
+      if (timestamps.start instanceof Date) {
         timestamps.start = Math.round(timestamps.start.getTime() / 1000);
-      if (timestamps.end instanceof Date)
+      }
+      if (timestamps.end instanceof Date) {
         timestamps.end = Math.round(timestamps.end.getTime() / 1000);
+      }
     }
     if (
       args.largeImageKey || args.largeImageText ||
@@ -518,8 +529,9 @@ class RPCClient extends BaseClient {
     }
     if (args.partySize || args.partyId || args.partyMax) {
       party = { id: args.partyId };
-      if (args.partySize || args.partyMax)
+      if (args.partySize || args.partyMax) {
         party.size = [args.partySize, args.partyMax];
+      }
     }
     if (args.matchSecret || args.joinSecret || args.spectateSecret) {
       secrets = {
@@ -555,21 +567,88 @@ class RPCClient extends BaseClient {
     });
   }
 
+  /**
+   * Invite a user to join the game the RPC user is currently playing
+   * @param {User} user The user to invite
+   * @returns {Promise}
+   */
   sendJoinInvite(user) {
     return this.request(RPCCommands.SEND_ACTIVITY_JOIN_INVITE, {
-      user_id: user.id ? user.id : user,
+      user_id: user.id || user,
     });
   }
 
+  /**
+   * Request to join the game the user is playing
+   * @param {User} user The user whose game you want to request to join
+   * @returns {Promise}
+   */
   sendJoinRequest(user) {
     return this.request(RPCCommands.SEND_ACTIVITY_JOIN_REQUEST, {
-      user_id: user.id ? user.id : user,
+      user_id: user.id || user,
     });
   }
 
+  /**
+   * Reject a join request from a user
+   * @param {User} user The user whose request you wish to reject
+   * @returns {Promise}
+   */
   closeJoinRequest(user) {
     return this.request(RPCCommands.CLOSE_ACTIVITY_JOIN_REQUEST, {
-      user_id: user.id ? user.id : user,
+      user_id: user.id || user,
+    });
+  }
+
+  createLobby(type, capacity, metadata) {
+    return this.request(RPCCommands.CREATE_LOBBY, {
+      type: LobbyTypes[type.toUpperCase()] || type,
+      capacity,
+      metadata,
+    });
+  }
+
+  updateLobby(lobby, { type, owner, capacity, metadata } = {}) {
+    return this.request(RPCCommands.UPDATE_LOBBY, {
+      id: lobby.id || lobby,
+      type: type !== undefined ? LobbyTypes[type.toUpperCase()] || type : undefined,
+      owner_id: (owner && owner.id) || owner,
+      capacity,
+      metadata,
+    });
+  }
+
+  deleteLobby(lobby) {
+    return this.request(RPCCommands.DELETE_LOBBY, {
+      id: lobby.id || lobby,
+    });
+  }
+
+  connectToLobby(id, secret) {
+    return this.request(RPCCommands.CONNECT_TO_LOBBY, {
+      id,
+      secret,
+    });
+  }
+
+  sendToLobby(lobby, data) {
+    return this.request(RPCCommands.SEND_TO_LOBBY, {
+      id: lobby.id || lobby,
+      data,
+    });
+  }
+
+  disconnectFromLobby(lobby) {
+    return this.request(RPCCommands.DISCONNECT_FROM_LOBBY, {
+      id: lobby.id || lobby,
+    });
+  }
+
+  updateLobbyMember(lobby, user, metadata) {
+    return this.request(RPCCommands.UPDATE_LOBBY_MEMBER, {
+      lobby_id: lobby.id || lobby,
+      user_id: user.id || user,
+      metadata,
     });
   }
 

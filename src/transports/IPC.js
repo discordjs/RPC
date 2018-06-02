@@ -35,8 +35,9 @@ class IPCTransport extends EventEmitter {
             this.send(data, OPCodes.PONG);
             break;
           case OPCodes.FRAME:
-            if (!data)
+            if (!data) {
               return;
+            }
             if (data.cmd === 'AUTHORIZE' && data.evt !== 'ERROR') {
               findEndpoint().then((endpoint) => {
                 this.client.rest.endpoint = endpoint;
@@ -85,15 +86,16 @@ function encode(op, data) {
   return packet;
 }
 
-let working = {
+const working = {
   full: '',
   op: undefined,
 };
 
 function decode(socket, callback) {
   const packet = socket.read();
-  if (!packet)
+  if (!packet) {
     return;
+  }
 
   let op = working.op;
   let raw;
@@ -106,7 +108,7 @@ function decode(socket, callback) {
   }
 
   try {
-    var data = JSON.parse(working.full + raw);
+    const data = JSON.parse(working.full + raw);
     callback({ op, data }); // eslint-disable-line callback-return
     working.full = '';
     working.op = undefined;
@@ -118,8 +120,9 @@ function decode(socket, callback) {
 }
 
 function getIPCPath(id) {
-  if (process.platform === 'win32')
+  if (process.platform === 'win32') {
     return `\\\\?\\pipe\\discord-ipc-${id}`;
+  }
   const { env: { XDG_RUNTIME_DIR, TMPDIR, TMP, TEMP } } = process;
   const prefix = XDG_RUNTIME_DIR || TMPDIR || TMP || TEMP || '/tmp';
   return `${prefix.replace(/\/$/, '')}/discord-ipc-${id}`;
@@ -129,10 +132,11 @@ function getIPC(id = 0) {
   return new Promise((resolve, reject) => {
     const path = getIPCPath(id);
     const onerror = () => {
-      if (id < 10)
+      if (id < 10) {
         resolve(getIPC(id + 1));
-      else
+      } else {
         reject(new Error('Could not connect'));
+      }
     };
     const sock = net.createConnection(path, () => {
       sock.removeListener('error', onerror);
@@ -143,13 +147,15 @@ function getIPC(id = 0) {
 }
 
 function findEndpoint(tries = 0) {
-  if (tries > 30)
+  if (tries > 30) {
     throw new Error('Could not find endpoint');
+  }
   const endpoint = `http://127.0.0.1:${6463 + (tries % 10)}`;
   return request.get(endpoint)
     .end((err, res) => {
-      if ((err.status || res.status) === 401)
+      if ((err.status || res.status) === 401) {
         return endpoint;
+      }
       return findEndpoint(tries + 1);
     });
 }

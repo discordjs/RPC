@@ -2,6 +2,7 @@
 
 const errors = require('discord.js/src/errors');
 const util = require('./Util');
+
 errors.register('RPC_INVALID_TRANSPORT', (name) => `Invalid transport: ${name}`);
 errors.register('RPC_CLIENT_ERROR', (m) => m);
 errors.register('RPC_CONNECTION_TIMEOUT', (m) => m);

@@ -1,5 +1,13 @@
 'use strict';
 
+function keyMirror(arr) {
+  const tmp = {};
+  for (const value of arr) {
+    tmp[value] = value;
+  }
+  return tmp;
+}
+
 exports.RPCCommands = keyMirror([
   'DISPATCH',
   'AUTHORIZE',
@@ -22,6 +30,13 @@ exports.RPCCommands = keyMirror([
   'SEND_ACTIVITY_JOIN_INVITE',
   'SEND_ACTIVITY_JOIN_REQUEST',
   'CLOSE_ACTIVITY_JOIN_REQUEST',
+  'CREATE_LOBBY',
+  'UPDATE_LOBBY',
+  'DELETE_LOBBY',
+  'UPDATE_LOBBY_MEMBER',
+  'CONNECT_TO_LOBBY',
+  'DISCONNECT_FROM_LOBBY',
+  'SEND_TO_LOBBY',
   'INVITE_BROWSER',
   'DEEP_LINK',
   'CONNECTIONS_CALLBACK',
@@ -51,6 +66,12 @@ exports.RPCEvents = keyMirror([
   'MESSAGE_UPDATE',
   'MESSAGE_DELETE',
   'CAPTURE_SHORTCUT_CHANGE',
+  'LOBBY_DELETE',
+  'LOBBY_UPDATE',
+  'LOBBY_MEMBER_CONNECT',
+  'LOBBY_MEMBER_DISCONNECT',
+  'LOBBY_MEMBER_UPDATE',
+  'LOBBY_MESSAGE',
   'OVERLAY',
   'READY',
   'ERROR',
@@ -71,12 +92,16 @@ exports.RPCErrors = {
   INVALID_USER: 4010,
   INVALID_INVITE: 4011,
   INVALID_ACTIVITY_JOIN_REQUEST: 4012,
+  INVALID_LOBBY: 4013,
+  INVALID_LOBBY_SECRET: 4014,
   OAUTH2_ERROR: 5000,
   SELECT_CHANNEL_TIMED_OUT: 5001,
   GET_GUILD_TIMED_OUT: 5002,
   SELECT_VOICE_FORCE_REQUIRED: 5003,
   CAPTURE_SHORTCUT_ALREADY_LISTENING: 5004,
-  RICH_PRESENCE_INVALID_SECRET: 5005,
+  INVALID_ACTIVITY_SECRET: 5005,
+  NO_ELIGIBLE_ACTIVITY: 5006,
+  LOBBY_FULL: 5007,
 };
 
 exports.RPCCloseCodes = {
@@ -91,9 +116,7 @@ exports.RPCCloseCodes = {
   INVALID_ENCODING: 4005,
 };
 
-function keyMirror(arr) {
-  let tmp = {};
-  for (const value of arr)
-    tmp[value] = value;
-  return tmp;
-}
+exports.LobbyTypes = {
+  PRIVATE: 1,
+  PUBLIC: 2,
+};
