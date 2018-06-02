@@ -8,7 +8,7 @@ try {
 
 const { Client } = require('../');
 
-const clientID = '180984871685062656';
+const { clientId, clientSecret } = require('./auth');
 
 const client = new Client({ transport: 'ipc' });
 
@@ -34,7 +34,7 @@ client.on('ready', async () => {
     .then(console.log, console.error);
 });
 
-client.login(clientID, {
+client.login(clientId, {
   scopes: ['rpc', 'rpc.api'],
-  clientSecret: '',
+  clientSecret,
 }).catch(console.error);

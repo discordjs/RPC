@@ -8,7 +8,7 @@ try {
 
 const { Client } = require('../');
 
-const clientID = '180984871685062656';
+const { clientId } = require('./auth');
 
 const client = new Client({ transport: 'ipc' });
 
@@ -43,4 +43,4 @@ client.on('ready', () => {
   }).then(console.log);
 });
 
-client.login(clientID).catch(console.error);
+client.login(clientId).catch(console.error);

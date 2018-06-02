@@ -3,8 +3,9 @@
 const { setTimeout, clearTimeout } = require('timers');
 const request = require('snekfetch');
 const transports = require('./transports');
-const { RPCCommands, RPCEvents, LobbyTypes } = require('./Constants');
+const { RPCCommands, RPCEvents } = require('./Constants');
 const { pid: getPid } = require('./Util');
+
 const Collection = require('discord.js/src/util/Collection');
 const Constants = require('discord.js/src/util/Constants');
 const Snowflake = require('discord.js/src/util/Snowflake');
@@ -14,6 +15,8 @@ const Channel = require('discord.js/src/structures/Channel');
 const User = require('discord.js/src/structures/User');
 const BaseClient = require('discord.js/src/client/BaseClient');
 const { Error, TypeError } = require('discord.js/src/errors');
+
+const Lobby = require('./Lobby');
 
 function createCache(create) {
   return {
@@ -600,22 +603,26 @@ class RPCClient extends BaseClient {
     });
   }
 
-  createLobby(type, capacity, metadata) {
-    return this.request(RPCCommands.CREATE_LOBBY, {
-      type: LobbyTypes[type.toUpperCase()] || type,
+  async createLobby(type, capacity, metadata) {
+    const data = await this.request(RPCCommands.CREATE_LOBBY, {
+      type: Lobby.Types[type.toUpperCase()] || type,
       capacity,
       metadata,
     });
+
+    return new Lobby(this, data);
   }
 
-  updateLobby(lobby, { type, owner, capacity, metadata } = {}) {
-    return this.request(RPCCommands.UPDATE_LOBBY, {
+  async updateLobby(lobby, { type, owner, capacity, metadata } = {}) {
+    const data = await this.request(RPCCommands.UPDATE_LOBBY, {
       id: lobby.id || lobby,
-      type: type !== undefined ? LobbyTypes[type.toUpperCase()] || type : undefined,
+      type: type !== undefined ? Lobby.Types[type.toUpperCase()] || type : undefined,
       owner_id: (owner && owner.id) || owner,
       capacity,
       metadata,
     });
+
+    return new Lobby(this, data);
   }
 
   deleteLobby(lobby) {
@@ -624,11 +631,13 @@ class RPCClient extends BaseClient {
     });
   }
 
-  connectToLobby(id, secret) {
-    return this.request(RPCCommands.CONNECT_TO_LOBBY, {
+  async connectToLobby(id, secret) {
+    const data = await this.request(RPCCommands.CONNECT_TO_LOBBY, {
       id,
       secret,
     });
+
+    return new Lobby(this, data);
   }
 
   sendToLobby(lobby, data) {
