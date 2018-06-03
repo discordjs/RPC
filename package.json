@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "discord.js": "github:discordjs/discord.js",
-    "snekfetch": "^3.5.8"
+    "snekfetch": "^4.0.0"
   },
   "peerDependencies": {
     "register-scheme": "github:devsnek/node-register-scheme"
