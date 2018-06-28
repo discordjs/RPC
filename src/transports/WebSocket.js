@@ -1,7 +1,10 @@
 'use strict';
 
 const EventEmitter = require('events');
-const WebSocket = require('discord.js/src/WebSocket');
+const WebSocket = require('ws');
+
+const pack = (d) => JSON.stringify(d);
+const unpack = (s) => JSON.parse(s);
 
 class WebSocketTransport extends EventEmitter {
   constructor(client) {
@@ -18,9 +21,8 @@ class WebSocketTransport extends EventEmitter {
     const port = 6463 + (tries % 10);
     this.hostAndPort = `127.0.0.1:${port}`;
     const cid = this.client.clientID;
-    const ws = this.ws = WebSocket.create(
-      `ws://${this.hostAndPort}/`,
-      { v: 1, client_id: cid || null },
+    const ws = this.ws = new WebSocket(
+      `ws://${this.hostAndPort}/?v=1&client_id=${cid}`,
       typeof window === 'undefined' ? { origin: this.client.options._login.origin } : undefined,
     );
     ws.onopen = this.onOpen.bind(this);
@@ -32,7 +34,7 @@ class WebSocketTransport extends EventEmitter {
     if (!this.ws) {
       return;
     }
-    this.ws.send(WebSocket.pack(data));
+    this.ws.send(pack(data));
   }
 
   close() {
@@ -45,7 +47,7 @@ class WebSocketTransport extends EventEmitter {
   ping() {} // eslint-disable-line no-empty-function
 
   onMessage(event) {
-    this.emit('message', WebSocket.unpack(event.data));
+    this.emit('message', unpack(event.data));
   }
 
   onOpen() {
@@ -63,11 +65,10 @@ class WebSocketTransport extends EventEmitter {
       this.emit('close', e);
     }
     if (!derr) {
+      // eslint-disable-next-line no-plusplus
       setTimeout(() => this.connect(undefined, e.code === 1006 ? ++this.tries : 0), 250);
     }
   }
 }
 
 module.exports = WebSocketTransport;
-module.exports.encode = WebSocket.pack;
-module.exports.decode = WebSocket.unpack;

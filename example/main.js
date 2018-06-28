@@ -1,3 +1,5 @@
+'use strict';
+
 /* eslint-disable no-console */
 
 const { app, BrowserWindow } = require('electron');
@@ -36,8 +38,9 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (mainWindow === null)
+  if (mainWindow === null) {
     createWindow();
+  }
 });
 
 // only needed for discord allowing spectate, join, ask to join
@@ -47,8 +50,9 @@ const rpc = new DiscordRPC.Client({ transport: 'ipc' });
 const startTimestamp = new Date();
 
 async function setActivity() {
-  if (!rpc || !mainWindow)
+  if (!rpc || !mainWindow) {
     return;
+  }
 
   const boops = await mainWindow.webContents.executeJavaScript('window.boops');
 

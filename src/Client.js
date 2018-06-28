@@ -1,31 +1,11 @@
 'use strict';
 
+const EventEmitter = require('events');
 const { setTimeout, clearTimeout } = require('timers');
 const request = require('snekfetch');
 const transports = require('./transports');
 const { RPCCommands, RPCEvents } = require('./Constants');
-const { pid: getPid } = require('./Util');
-
-const Collection = require('discord.js/src/util/Collection');
-const Constants = require('discord.js/src/util/Constants');
-const Snowflake = require('discord.js/src/util/Snowflake');
-const ClientApplication = require('discord.js/src/structures/ClientApplication');
-const Guild = require('discord.js/src/structures/Guild');
-const Channel = require('discord.js/src/structures/Channel');
-const User = require('discord.js/src/structures/User');
-const BaseClient = require('discord.js/src/client/BaseClient');
-const { Error, TypeError } = require('discord.js/src/errors');
-
-const Lobby = require('./Lobby');
-
-function createCache(create) {
-  return {
-    has: () => false,
-    delete: () => false,
-    get: () => undefined,
-    create,
-  };
-}
+const { pid: getPid, uuid } = require('./Util');
 
 function subKey(event, args) {
   return `${event}${JSON.stringify(args)}`;
@@ -41,13 +21,16 @@ function subKey(event, args) {
  * The main hub for interacting with Discord RPC
  * @extends {BaseClient}
  */
-class RPCClient extends BaseClient {
+class RPCClient extends EventEmitter {
   /**
    * @param {RPCClientOptions} [options] Options for the client
    * You must provide a transport
    */
   constructor(options = {}) {
-    super(Object.assign({ _tokenType: 'Bearer' }, options));
+    super();
+
+    this.options = options;
+
     this.accessToken = null;
     this.clientID = null;
 
@@ -89,10 +72,6 @@ class RPCClient extends BaseClient {
      * @private
      */
     this._subscriptions = new Map();
-
-    this.users = createCache((data) => new User(this, data));
-    this.channels = createCache((data, guild) => Channel.create(this, data, guild));
-    this.guilds = createCache((data) => new Guild(this, data));
   }
 
   /**
@@ -146,7 +125,7 @@ class RPCClient extends BaseClient {
    */
   request(cmd, args, evt) {
     return new Promise((resolve, reject) => {
-      const nonce = Snowflake.generate();
+      const nonce = uuid();
       this.transport.send({ cmd, args, evt, nonce });
       this._expecting.set(nonce, { resolve, reject });
     });
@@ -161,7 +140,7 @@ class RPCClient extends BaseClient {
     if (message.cmd === RPCCommands.DISPATCH && message.evt === RPCEvents.READY) {
       this.emit('connected');
       if (message.data.user) {
-        this.user = this.users.create(message.data.user);
+        this.user = message.data.user;
       }
     } else if (this._expecting.has(message.nonce)) {
       const { resolve, reject } = this._expecting.get(message.nonce);
@@ -208,7 +187,9 @@ class RPCClient extends BaseClient {
     if (tokenEndpoint) {
       const r = await request.post(tokenEndpoint).send({ code });
       return this.authenticate(r.body.access_token);
-    } else if (clientSecret) {
+    }
+
+    if (clientSecret) {
       const { access_token: accessToken } = await this.api.oauth2.token.post({
         query: {
           client_id: this.clientID,
@@ -234,12 +215,8 @@ class RPCClient extends BaseClient {
     this.accessToken = accessToken;
     return this.request('AUTHENTICATE', { access_token: accessToken })
       .then(({ application, user }) => {
-        this.application = new ClientApplication(this, application);
-        if (this.user) {
-          this.user._patch(user);
-        } else {
-          this.user = this.users.create(user);
-        }
+        this.application = application;
+        this.user = user;
         this.emit('ready');
         return this;
       });
@@ -253,8 +230,7 @@ class RPCClient extends BaseClient {
    * @returns {Promise<Guild>}
    */
   getGuild(id, timeout) {
-    return this.request(RPCCommands.GET_GUILD, { guild_id: id, timeout })
-      .then((guild) => this.guilds.create(guild));
+    return this.request(RPCCommands.GET_GUILD, { guild_id: id, timeout });
   }
 
   /**
@@ -263,14 +239,7 @@ class RPCClient extends BaseClient {
    * @returns {Promise<Collection<Snowflake, Guild>>}
    */
   getGuilds(timeout) {
-    return this.request(RPCCommands.GET_GUILDS, { timeout })
-      .then(({ guilds }) => {
-        const c = new Collection();
-        for (const guild of guilds) {
-          c.set(guild.id, this.guilds.create(guild));
-        }
-        return c;
-      });
+    return this.request(RPCCommands.GET_GUILDS, { timeout });
   }
 
   /**
@@ -280,14 +249,7 @@ class RPCClient extends BaseClient {
    * @returns {Promise<Channel>}
    */
   getChannel(id, timeout) {
-    return this.request(RPCCommands.GET_CHANNEL, { channel_id: id, timeout })
-      .then((channel) => {
-        if (channel.guild_id) {
-          return this.getGuild(channel.guild_id);
-        }
-
-        return Channel.create(this, channel);
-      });
+    return this.request(RPCCommands.GET_CHANNEL, { channel_id: id, timeout });
   }
 
   /**
@@ -296,21 +258,7 @@ class RPCClient extends BaseClient {
    * @returns {Promise<Collection<Snowflake, Channel>>}
    */
   getChannels(timeout) {
-    return this.request(RPCCommands.GET_CHANNELS, { timeout })
-      .then(async ({ channels }) => {
-        const guilds = new Collection();
-        const c = new Collection();
-        for (const channel of channels) {
-          const { guild_id: guildId } = channel;
-
-          if (guildId && !guilds.has(guildId)) {
-            // eslint-disable-next-line no-await-in-loop
-            guilds.set(guildId, await this.getGuild(guildId));
-          }
-          c.set(channel.id, this.channels.create(channel, guilds.get(channel.guild_id)));
-        }
-        return c;
-      });
+    return this.request(RPCCommands.GET_CHANNELS, { timeout });
   }
 
   /**
@@ -338,7 +286,7 @@ class RPCClient extends BaseClient {
   setCertifiedDevices(devices) {
     return this.request(RPCCommands.SET_CERTIFIED_DEVICES, {
       devices: devices.map((d) => ({
-        type: Constants.DeviceTypes[d.type],
+        type: d.type,
         id: d.uuid,
         vendor: d.vendor,
         model: d.model,
@@ -429,11 +377,7 @@ class RPCClient extends BaseClient {
           type: s.mode.type,
           autoThreshold: s.mode.auto_threshold,
           threshold: s.mode.threshold,
-          shortcut: s.mode.shortcut.map((sc) => ({
-            name: sc.name,
-            code: sc.code,
-            type: Object.keys(Constants.KeyTypes)[sc.type],
-          })),
+          shortcut: s.mode.shortcut,
           delay: s.mode.delay,
         },
       }));
@@ -466,11 +410,7 @@ class RPCClient extends BaseClient {
         mode: args.mode.type,
         auto_threshold: args.mode.autoThreshold,
         threshold: args.mode.threshold,
-        shortcut: args.mode.shortcut.map((sc) => ({
-          name: sc.name,
-          code: sc.code,
-          type: Constants.KeyTypes[sc.type.toUpperCase()],
-        })),
+        shortcut: args.mode.shortcut,
         delay: args.mode.delay,
       } : undefined,
     });
@@ -491,12 +431,7 @@ class RPCClient extends BaseClient {
       return this.request(RPCCommands.CAPTURE_SHORTCUT, { action: 'STOP' });
     };
     this._subscriptions.set(subid, ({ shortcut }) => {
-      const keys = shortcut.map((sc) => ({
-        name: sc.name,
-        code: sc.code,
-        type: Object.keys(Constants.KeyTypes)[sc.type],
-      }));
-      callback(keys, stop);
+      callback(shortcut, stop);
     });
     return this.request(RPCCommands.CAPTURE_SHORTCUT, { action: 'START' })
       .then(() => stop);
@@ -604,25 +539,21 @@ class RPCClient extends BaseClient {
   }
 
   async createLobby(type, capacity, metadata) {
-    const data = await this.request(RPCCommands.CREATE_LOBBY, {
-      type: Lobby.Types[type.toUpperCase()] || type,
+    return this.request(RPCCommands.CREATE_LOBBY, {
+      type,
       capacity,
       metadata,
     });
-
-    return new Lobby(this, data);
   }
 
   async updateLobby(lobby, { type, owner, capacity, metadata } = {}) {
-    const data = await this.request(RPCCommands.UPDATE_LOBBY, {
+    return this.request(RPCCommands.UPDATE_LOBBY, {
       id: lobby.id || lobby,
-      type: type !== undefined ? Lobby.Types[type.toUpperCase()] || type : undefined,
+      type,
       owner_id: (owner && owner.id) || owner,
       capacity,
       metadata,
     });
-
-    return new Lobby(this, data);
   }
 
   deleteLobby(lobby) {
@@ -632,12 +563,10 @@ class RPCClient extends BaseClient {
   }
 
   async connectToLobby(id, secret) {
-    const data = await this.request(RPCCommands.CONNECT_TO_LOBBY, {
+    return this.request(RPCCommands.CONNECT_TO_LOBBY, {
       id,
       secret,
     });
-
-    return new Lobby(this, data);
   }
 
   sendToLobby(lobby, data) {

@@ -30,8 +30,8 @@ client.on('ready', async () => {
     instance: true,
   }).then(console.log, console.error);
 
-  await client.createLobby('private', 2, { hi: 1 })
-    .then(console.log, console.error);
+  // await client.createLobby('private', 2, { hi: 1 })
+  //   .then(console.log, console.error);
 });
 
 client.login(clientId, {

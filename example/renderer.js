@@ -1,4 +1,9 @@
+'use strict';
+
+/* eslint-env browser */
+
 const { webFrame } = require('electron');
+
 const snek = document.getElementById('snek');
 const counter = document.getElementById('boops');
 
@@ -6,7 +11,7 @@ webFrame.setZoomLevelLimits(1, 1);
 
 window.boops = 0;
 function boop() {
-  window.boops++;
+  window.boops += 1;
   counter.innerHTML = `${window.boops} BOOPS`;
 }
 
