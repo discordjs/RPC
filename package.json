@@ -29,7 +29,7 @@
     "prepublishOnly": "NODE_ENV=production npm run build:browser"
   },
   "dependencies": {
-    "snekfetch": "^4.0.0",
+    "node-fetch": "^2.1.2",
     "ws": "^5.2.1"
   },
   "peerDependencies": {

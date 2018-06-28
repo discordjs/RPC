@@ -2,7 +2,7 @@
 
 const EventEmitter = require('events');
 const { setTimeout, clearTimeout } = require('timers');
-const request = require('snekfetch');
+const fetch = require('node-fetch');
 const transports = require('./transports');
 const { RPCCommands, RPCEvents } = require('./Constants');
 const { pid: getPid, uuid } = require('./Util');
@@ -51,10 +51,21 @@ class RPCClient extends EventEmitter {
       throw new TypeError('RPC_INVALID_TRANSPORT', options.transport);
     }
 
+    this.fetch = (method, path, { data, query } = {}) =>
+      fetch(`${this.fetch.endpoint}${path}${query ? new URLSearchParams(query) : ''}`, {
+        method,
+        body: data,
+        headers: {
+          Authorzation: `Bearer ${this.accessToken}`,
+        },
+      }).then((r) => r.json());
+
+    this.fetch.endpoint = 'https://discordapp.com/api';
 
     /**
      * Raw transport userd
      * @type {RPCTransport}
+     * @private
      */
     this.transport = new Transport(this);
     this.transport.on('message', this._onRpcMessage.bind(this));
@@ -167,9 +178,11 @@ class RPCClient extends EventEmitter {
    */
   async authorize({ rpcToken, scopes, clientSecret, tokenEndpoint }) {
     if (tokenEndpoint && !rpcToken) {
-      rpcToken = await request.get(tokenEndpoint).then((r) => r.body.rpc_token);
+      const res = await fetch(tokenEndpoint);
+      const body = await res.json();
+      rpcToken = body.rpc_token;
     } else if (clientSecret && rpcToken === true) {
-      rpcToken = await this.api.oauth2.token.rpc.post({
+      rpcToken = await this.fetch('POST', '/oauth2/token/rpc', {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         data: {
           client_id: this.clientID,
@@ -185,12 +198,16 @@ class RPCClient extends EventEmitter {
     });
 
     if (tokenEndpoint) {
-      const r = await request.post(tokenEndpoint).send({ code });
-      return this.authenticate(r.body.access_token);
+      const r = await fetch(tokenEndpoint, {
+        method: 'POST',
+        body: { code },
+      });
+      const body = await r.json();
+      return this.authenticate(body.access_token);
     }
 
     if (clientSecret) {
-      const { access_token: accessToken } = await this.api.oauth2.token.post({
+      const { access_token: accessToken } = await this.fetch('POST', '/oauth2/token', {
         query: {
           client_id: this.clientID,
           client_secret: clientSecret,

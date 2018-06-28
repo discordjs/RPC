@@ -2,7 +2,7 @@
 
 const net = require('net');
 const EventEmitter = require('events');
-const request = require('snekfetch');
+const fetch = require('node-fetch');
 const { uuid } = require('../Util');
 
 const OPCodes = {
@@ -40,18 +40,20 @@ function getIPC(id = 0) {
   });
 }
 
-function findEndpoint(tries = 0) {
+async function findEndpoint(tries = 0) {
   if (tries > 30) {
     throw new Error('Could not find endpoint');
   }
   const endpoint = `http://127.0.0.1:${6463 + (tries % 10)}`;
-  return request.get(endpoint)
-    .end((err, res) => {
-      if ((err.status || res.status) === 401) {
-        return endpoint;
-      }
+  try {
+    const r = await fetch(endpoint);
+    if (r.status !== 401) {
       return findEndpoint(tries + 1);
-    });
+    }
+    return endpoint;
+  } catch (e) {
+    return findEndpoint(tries + 1);
+  }
 }
 
 function encode(op, data) {
@@ -124,8 +126,7 @@ class IPCTransport extends EventEmitter {
             }
             if (data.cmd === 'AUTHORIZE' && data.evt !== 'ERROR') {
               findEndpoint().then((endpoint) => {
-                this.client.rest.endpoint = endpoint;
-                this.client.rest.versioned = false;
+                this.client.request.endpoint = endpoint;
               });
             }
             this.emit('message', data);
