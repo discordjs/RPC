@@ -632,7 +632,6 @@ class RPCClient extends EventEmitter {
    * Destroy the client
    */
   async destroy() {
-    super.destroy();
     this.transport.close();
   }
 }
