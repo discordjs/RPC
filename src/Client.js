@@ -83,6 +83,29 @@ class RPCClient extends EventEmitter {
      * @private
      */
     this._subscriptions = new Map();
+
+    this._connectPromise = undefined;
+  }
+
+  /**
+   * Search and connect to RPC
+   */
+  connect(clientID, { origin } = {}) {
+    if (this._connectPromise) {
+      return this._connectPromise;
+    }
+    this._connectPromise = new Promise((resolve, reject) => {
+      this.clientID = clientID;
+      const timeout = setTimeout(() => reject(new Error('RPC_CONNECTION_TIMEOUT')), 10e3);
+      timeout.unref();
+      this.once('connected', () => {
+        clearTimeout(timeout);
+        resolve(this);
+      });
+      this.transport.once('close', reject);
+      this.transport.connect({ origin });
+    });
+    return this._connectPromise;
   }
 
   /**
@@ -95,35 +118,23 @@ class RPCClient extends EventEmitter {
    */
 
   /**
-   * Log in
+   * Performs authentication flow. Automatically calls Client#connect if needed.
    * @param {string} clientID Client ID
    * @param {RPCLoginOptions} options Options for authentication.
    * At least one property must be provided to perform login.
    * @example client.login('1234567', { clientSecret: 'abcdef123' });
    * @returns {Promise<RPCClient>}
    */
-  login(clientID, options) {
-    return new Promise((resolve, reject) => {
-      this.clientID = clientID;
-      this.options._login = options || {};
-      const timeout = setTimeout(() => reject(new Error('RPC_CONNECTION_TIMEOUT')), 10e3);
-      timeout.unref();
-      this.once('connected', () => {
-        clearTimeout(timeout);
-        resolve(this);
-      });
-      this.transport.once('close', reject);
-      this.transport.connect({ client_id: this.clientID });
-    }).then(() => {
-      if (!options) {
-        this.emit('ready');
-        return this;
-      }
-      if (options.accessToken) {
-        return this.authenticate(options.accessToken);
-      }
-      return this.authorize(options);
-    });
+  async login(clientID, options) {
+    await this.connect(clientID, options);
+    if (!options) {
+      this.emit('ready');
+      return this;
+    }
+    if (options.accessToken) {
+      return this.authenticate(options.accessToken);
+    }
+    return this.authorize(options);
   }
 
   /**

@@ -106,12 +106,12 @@ class IPCTransport extends EventEmitter {
     this.socket = null;
   }
 
-  async connect({ client_id: clientId }) {
+  async connect() {
     const socket = this.socket = await getIPC();
     this.emit('open');
     socket.write(encode(OPCodes.HANDSHAKE, {
       v: 1,
-      client_id: clientId,
+      client_id: this.client.clientID,
     }));
     socket.pause();
     socket.on('readable', () => {
