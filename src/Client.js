@@ -32,7 +32,7 @@ class RPCClient extends EventEmitter {
     this.options = options;
 
     this.accessToken = null;
-    this.clientID = null;
+    this.clientId = null;
 
     /**
      * Application used in this client
@@ -90,12 +90,12 @@ class RPCClient extends EventEmitter {
   /**
    * Search and connect to RPC
    */
-  connect(clientID, { origin } = {}) {
+  connect(clientId, { origin } = {}) {
     if (this._connectPromise) {
       return this._connectPromise;
     }
     this._connectPromise = new Promise((resolve, reject) => {
-      this.clientID = clientID;
+      this.clientId = clientId;
       const timeout = setTimeout(() => reject(new Error('RPC_CONNECTION_TIMEOUT')), 10e3);
       timeout.unref();
       this.once('connected', () => {
@@ -119,22 +119,23 @@ class RPCClient extends EventEmitter {
 
   /**
    * Performs authentication flow. Automatically calls Client#connect if needed.
-   * @param {string} clientID Client ID
+   * @param {string} clientId Client ID
    * @param {RPCLoginOptions} options Options for authentication.
    * At least one property must be provided to perform login.
    * @example client.login('1234567', { clientSecret: 'abcdef123' });
    * @returns {Promise<RPCClient>}
    */
-  async login(clientID, options) {
-    await this.connect(clientID, options);
+  async login(clientId, options) {
+    await this.connect(clientId, options);
     if (!options) {
       this.emit('ready');
       return this;
     }
-    if (options.accessToken) {
-      return this.authenticate(options.accessToken);
+    let { accessToken } = options;
+    if (!accessToken) {
+      accessToken = await this.authorize(options.scopes, options);
     }
-    return this.authorize(options);
+    return this.authenticate(accessToken);
   }
 
   /**
@@ -190,50 +191,34 @@ class RPCClient extends EventEmitter {
    * @returns {Promise}
    * @private
    */
-  async authorize({ rpcToken, scopes, clientSecret, tokenEndpoint }) {
-    if (tokenEndpoint && !rpcToken) {
-      const res = await fetch(tokenEndpoint);
-      const body = await res.json();
-      rpcToken = body.rpc_token;
-    } else if (clientSecret && rpcToken === true) {
-      rpcToken = await this.fetch('POST', '/oauth2/token/rpc', {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        data: {
-          client_id: this.clientID,
+  async authorize(scopes, { clientSecret, rpcToken, redirectUri } = {}) {
+    if (clientSecret && rpcToken === true) {
+      const body = await this.fetch('POST', '/oauth2/token/rpc', {
+        data: new URLSearchParams({
+          client_id: this.clientId,
           client_secret: clientSecret,
-        },
+        }),
       });
+      rpcToken = body.rpc_token;
     }
 
     const { code } = await this.request('AUTHORIZE', {
-      client_id: this.clientID,
       scopes,
+      client_id: this.clientId,
       rpc_token: rpcToken,
+      redirect_uri: redirectUri,
     });
 
-    if (tokenEndpoint) {
-      const r = await fetch(tokenEndpoint, {
-        method: 'POST',
-        body: { code },
-      });
-      const body = await r.json();
-      return this.authenticate(body.access_token);
-    }
+    const response = await this.fetch('POST', '/oauth2/token', {
+      data: new URLSearchParams({
+        client_id: this.clientId,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: redirectUri,
+      }),
+    });
 
-    if (clientSecret) {
-      const { access_token: accessToken } = await this.fetch('POST', '/oauth2/token', {
-        query: {
-          client_id: this.clientID,
-          client_secret: clientSecret,
-          code,
-          grant_type: 'authorization_code',
-        },
-        auth: false,
-      });
-      return this.authenticate(accessToken);
-    }
-
-    return { code };
+    return response.access_token;
   }
 
   /**
