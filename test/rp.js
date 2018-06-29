@@ -43,4 +43,4 @@ client.on('ready', () => {
   }).then(console.log);
 });
 
-client.login(clientId).catch(console.error);
+client.login({ clientId }).catch(console.error);

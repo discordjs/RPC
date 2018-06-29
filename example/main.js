@@ -7,9 +7,6 @@ const path = require('path');
 const url = require('url');
 const DiscordRPC = require('../');
 
-// don't change the client id if you want this example to work
-const ClientId = '180984871685062656';
-
 let mainWindow;
 
 function createWindow() {
@@ -43,8 +40,11 @@ app.on('activate', () => {
   }
 });
 
+// don't change the client id if you want this example to work
+const clientId = '180984871685062656';
+
 // only needed for discord allowing spectate, join, ask to join
-DiscordRPC.register(ClientId);
+DiscordRPC.register(clientId);
 
 const rpc = new DiscordRPC.Client({ transport: 'ipc' });
 const startTimestamp = new Date();
@@ -77,4 +77,4 @@ rpc.on('ready', () => {
   }, 15e3);
 });
 
-rpc.login(ClientId).catch(console.error);
+rpc.login({ clientId }).catch(console.error);

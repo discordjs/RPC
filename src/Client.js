@@ -90,7 +90,7 @@ class RPCClient extends EventEmitter {
   /**
    * Search and connect to RPC
    */
-  connect(clientId, { origin } = {}) {
+  connect(clientId) {
     if (this._connectPromise) {
       return this._connectPromise;
     }
@@ -103,7 +103,7 @@ class RPCClient extends EventEmitter {
         resolve(this);
       });
       this.transport.once('close', reject);
-      this.transport.connect({ origin });
+      this.transport.connect();
     });
     return this._connectPromise;
   }
@@ -125,15 +125,15 @@ class RPCClient extends EventEmitter {
    * @example client.login('1234567', { clientSecret: 'abcdef123' });
    * @returns {Promise<RPCClient>}
    */
-  async login(clientId, options) {
-    await this.connect(clientId, options);
-    if (!options) {
+  async login(options = {}) {
+    let { clientId, accessToken } = options;
+    await this.connect(clientId);
+    if (!options.scopes) {
       this.emit('ready');
       return this;
     }
-    let { accessToken } = options;
     if (!accessToken) {
-      accessToken = await this.authorize(options.scopes, options);
+      accessToken = await this.authorize(options);
     }
     return this.authenticate(accessToken);
   }
@@ -191,7 +191,7 @@ class RPCClient extends EventEmitter {
    * @returns {Promise}
    * @private
    */
-  async authorize(scopes, { clientSecret, rpcToken, redirectUri } = {}) {
+  async authorize({ scopes, clientSecret, rpcToken, redirectUri } = {}) {
     if (clientSecret && rpcToken === true) {
       const body = await this.fetch('POST', '/oauth2/token/rpc', {
         data: new URLSearchParams({
@@ -228,9 +228,9 @@ class RPCClient extends EventEmitter {
    * @private
    */
   authenticate(accessToken) {
-    this.accessToken = accessToken;
     return this.request('AUTHENTICATE', { access_token: accessToken })
       .then(({ application, user }) => {
+        this.accessToken = accessToken;
         this.application = application;
         this.user = user;
         this.emit('ready');

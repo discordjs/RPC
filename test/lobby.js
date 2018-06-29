@@ -34,7 +34,8 @@ client.on('ready', async () => {
   //   .then(console.log, console.error);
 });
 
-client.login(clientId, {
+client.login({
+  clientId,
+  clientSecret,
   scopes: ['rpc', 'rpc.api'],
-  // clientSecret,
 }).catch(console.error);

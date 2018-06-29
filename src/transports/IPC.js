@@ -111,7 +111,7 @@ class IPCTransport extends EventEmitter {
     this.emit('open');
     socket.write(encode(OPCodes.HANDSHAKE, {
       v: 1,
-      client_id: this.client.clientID,
+      client_id: this.client.clientId,
     }));
     socket.pause();
     socket.on('readable', () => {

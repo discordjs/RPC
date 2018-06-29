@@ -34,5 +34,5 @@ client.on('ready', () => {
 });
 
 // Log in to RPC with client id
-client.login(clientId, { scopes });
+client.login({ clientId, scopes });
 ```

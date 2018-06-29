@@ -21,8 +21,7 @@ class WebSocketTransport extends EventEmitter {
     const port = 6463 + (tries % 10);
     this.hostAndPort = `127.0.0.1:${port}`;
     const ws = this.ws = new WebSocket(
-      `ws://${this.hostAndPort}/?v=1&client_id=${this.client.clientID}`,
-      typeof window === 'undefined' ? { origin: options.origin } : undefined,
+      `ws://${this.hostAndPort}/?v=1&client_id=${this.client.clientId}`,
     );
     ws.onopen = this.onOpen.bind(this);
     ws.onclose = ws.onerror = this.onClose.bind(this);
