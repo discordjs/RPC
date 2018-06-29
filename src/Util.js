@@ -21,7 +21,7 @@ function pid() {
   return null;
 }
 
-const uuid = () => {
+const uuid4122 = () => {
   let uuid = '';
   for (let i = 0; i < 32; i += 1) {
     if (i === 8 || i === 12 || i === 16 || i === 20) {
@@ -46,5 +46,5 @@ const uuid = () => {
 module.exports = {
   pid,
   register,
-  uuid,
+  uuid: uuid4122,
 };
