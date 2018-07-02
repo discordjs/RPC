@@ -469,6 +469,12 @@ class RPCClient extends EventEmitter {
       if (timestamps.end instanceof Date) {
         timestamps.end = Math.round(timestamps.end.getTime() / 1000);
       }
+      if (timestamps.start > 2147483647) {
+        throw new RangeError('timestamps.start must fit into a unix timestamp');
+      }
+      if (timestamps.end > 2147483647) {
+        throw new RangeError('timestamps.end must fit into a unix timestamp');
+      }
     }
     if (
       args.largeImageKey || args.largeImageText ||
