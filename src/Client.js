@@ -103,7 +103,7 @@ class RPCClient extends EventEmitter {
         resolve(this);
       });
       this.transport.once('close', reject);
-      this.transport.connect();
+      this.transport.connect().catch(reject);
     });
     return this._connectPromise;
   }

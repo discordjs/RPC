@@ -14,7 +14,7 @@ class WebSocketTransport extends EventEmitter {
     this.tries = 0;
   }
 
-  connect(options, tries = this.tries) {
+  async connect(options, tries = this.tries) {
     if (this.connected) {
       return;
     }
