@@ -108,6 +108,8 @@ class IPCTransport extends EventEmitter {
 
   async connect() {
     const socket = this.socket = await getIPC();
+    socket.on('close', this.onClose.bind(this));
+    socket.on('error', this.onClose.bind(this));
     this.emit('open');
     socket.write(encode(OPCodes.HANDSHAKE, {
       v: 1,
@@ -139,8 +141,6 @@ class IPCTransport extends EventEmitter {
         }
       });
     });
-    socket.on('close', this.onClose.bind(this));
-    socket.on('error', this.onClose.bind(this));
   }
 
   onClose(e) {
