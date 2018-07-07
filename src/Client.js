@@ -260,7 +260,7 @@ class RPCClient extends EventEmitter {
 
   /**
    * Get a channel
-   * @param {Snowflake} id Channel id
+   * @param {Snowflake} id Channel ID
    * @param {number} [timeout] Timeout request
    * @returns {Promise<Channel>}
    */
@@ -270,11 +270,16 @@ class RPCClient extends EventEmitter {
 
   /**
    * Get all channels
+   * @param {Snowflake} [id] Guild ID
    * @param {number} [timeout] Timeout request
    * @returns {Promise<Collection<Snowflake, Channel>>}
    */
-  getChannels(timeout) {
-    return this.request(RPCCommands.GET_CHANNELS, { timeout });
+  async getChannels(id, timeout) {
+    const { channels } = await this.request(RPCCommands.GET_CHANNELS, {
+      timeout,
+      guild_id: id,
+    });
+    return channels;
   }
 
   /**
