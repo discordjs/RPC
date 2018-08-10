@@ -110,6 +110,7 @@ class RPCClient extends EventEmitter {
 
   /**
    * @typedef {RPCLoginOptions}
+   * @param {string} clientId Client ID
    * @param {string} [clientSecret] Client secret
    * @param {string} [accessToken] Access token
    * @param {string} [rpcToken] RPC token
@@ -119,7 +120,6 @@ class RPCClient extends EventEmitter {
 
   /**
    * Performs authentication flow. Automatically calls Client#connect if needed.
-   * @param {string} clientId Client ID
    * @param {RPCLoginOptions} options Options for authentication.
    * At least one property must be provided to perform login.
    * @example client.login('1234567', { clientSecret: 'abcdef123' });
