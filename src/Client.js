@@ -122,7 +122,7 @@ class RPCClient extends EventEmitter {
    * Performs authentication flow. Automatically calls Client#connect if needed.
    * @param {RPCLoginOptions} options Options for authentication.
    * At least one property must be provided to perform login.
-   * @example client.login('1234567', { clientSecret: 'abcdef123' });
+   * @example client.login({ clientId: '1234567', clientSecret: 'abcdef123' });
    * @returns {Promise<RPCClient>}
    */
   async login(options = {}) {
