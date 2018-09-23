@@ -458,6 +458,12 @@ class RPCClient extends EventEmitter {
       .then(() => stop);
   }
 
+  /**
+   * Sets the presence for the logged in user.
+   * @param {object} args The rich presence to pass.
+   * @param {number} [pid] The application's process ID. Defaults to the executing process' PID.
+   * @returns {Promise}
+   */
   setActivity(args = {}, pid = getPid()) {
     let timestamps;
     let assets;
