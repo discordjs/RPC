@@ -3,7 +3,10 @@
 const net = require('net');
 const EventEmitter = require('events');
 const fetch = require('node-fetch');
+const fs = require('fs');
 const { uuid } = require('../Util');
+
+let DISTRO = null;
 
 const OPCodes = {
   HANDSHAKE: 0,
@@ -19,7 +22,14 @@ function getIPCPath(id) {
   }
   const { env: { XDG_RUNTIME_DIR, TMPDIR, TMP, TEMP } } = process;
   const prefix = XDG_RUNTIME_DIR || TMPDIR || TMP || TEMP || '/tmp';
-  return `${prefix.replace(/\/$/, '')}/discord-ipc-${id}`;
+  if (!DISTRO) {
+    try {
+      let release = fs.readFileSync('/etc/lsb-release', 'utf8');
+      release = release.toLowerCase().match(/distrib_release=(.*)/);
+      if (release && release.length === 2) DISTRO = release[1];
+    } catch (error) { }
+  }
+  return `${prefix.replace(/\/$/, '')}/${DISTRO === '18.04' ? 'snap.discord/' : ''}discord-ipc-${id}`;
 }
 
 function getIPC(id = 0) {
