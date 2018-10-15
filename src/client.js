@@ -90,20 +90,21 @@ class RPCClient extends EventEmitter {
   /**
    * Search and connect to RPC
    */
-  connect(clientId) {
+  connect(clientId, transportId = 0, connectionTimeout = 10e3) {
     if (this._connectPromise) {
       return this._connectPromise;
     }
     this._connectPromise = new Promise((resolve, reject) => {
       this.clientId = clientId;
-      const timeout = setTimeout(() => reject(new Error('RPC_CONNECTION_TIMEOUT')), 10e3);
+      const timeout = setTimeout(() => reject(new Error('RPC_CONNECTION_TIMEOUT')), connectionTimeout);
       timeout.unref();
       this.once('connected', () => {
         clearTimeout(timeout);
+        console.log(`CONNECTED on transportId ${transportId}`);
         resolve(this);
       });
       this.transport.once('close', reject);
-      this.transport.connect().catch(reject);
+      this.transport.connect(transportId).catch(reject);
     });
     return this._connectPromise;
   }
@@ -122,12 +123,14 @@ class RPCClient extends EventEmitter {
    * Performs authentication flow. Automatically calls Client#connect if needed.
    * @param {RPCLoginOptions} options Options for authentication.
    * At least one property must be provided to perform login.
+   * @param {Number} [transportId = 0] Starting index for transport port/pipename lookup.
+   * @param {Number} [connectionTimeout = 10e3] How long to wait for a connection before throwing an RPC_CONNECTION_TIMEOUT.
    * @example client.login({ clientId: '1234567', clientSecret: 'abcdef123' });
    * @returns {Promise<RPCClient>}
    */
-  async login(options = {}) {
+  async login(options = {}, transportId = 0, connectionTimeout = 10e3) {
     let { clientId, accessToken } = options;
-    await this.connect(clientId);
+    await this.connect(clientId, transportId, connectionTimeout);
     if (!options.scopes) {
       this.emit('ready');
       return this;

@@ -14,7 +14,7 @@ class WebSocketTransport extends EventEmitter {
     this.tries = 0;
   }
 
-  async connect(options, tries = this.tries) {
+  async connect(tries = this.tries) {
     if (this.connected) {
       return;
     }
@@ -62,7 +62,7 @@ class WebSocketTransport extends EventEmitter {
     }
     if (!derr) {
       // eslint-disable-next-line no-plusplus
-      setTimeout(() => this.connect(undefined, e.code === 1006 ? ++this.tries : 0), 250);
+      setTimeout(() => this.connect(e.code === 1006 ? ++this.tries : 0), 250);
     }
   }
 }

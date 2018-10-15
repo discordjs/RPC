@@ -22,7 +22,7 @@ function getIPCPath(id) {
   return `${prefix.replace(/\/$/, '')}/discord-ipc-${id}`;
 }
 
-function getIPC(id = 0) {
+function getIPC(id) {
   return new Promise((resolve, reject) => {
     const path = getIPCPath(id);
     const onerror = () => {
@@ -32,11 +32,11 @@ function getIPC(id = 0) {
         reject(new Error('Could not connect'));
       }
     };
-    const sock = net.createConnection(path, () => {
-      sock.removeListener('error', onerror);
-      resolve(sock);
+    const socket = net.createConnection(path, () => {
+      socket.removeListener('error', onerror);
+      resolve({socket, id});
     });
-    sock.once('error', onerror);
+    socket.once('error', onerror);
   });
 }
 
@@ -104,10 +104,13 @@ class IPCTransport extends EventEmitter {
     super();
     this.client = client;
     this.socket = null;
+    this.transportId = null;
   }
 
-  async connect() {
-    const socket = this.socket = await getIPC();
+  async connect(transportId = 0) {
+    const { socket, id } = await getIPC(transportId);
+    this.socket = socket;
+    this.transportId = id;
     socket.on('close', this.onClose.bind(this));
     socket.on('error', this.onClose.bind(this));
     this.emit('open');
@@ -127,7 +130,7 @@ class IPCTransport extends EventEmitter {
               return;
             }
             if (data.cmd === 'AUTHORIZE' && data.evt !== 'ERROR') {
-              findEndpoint().then((endpoint) => {
+              findEndpoint(transportId).then((endpoint) => {
                 this.client.request.endpoint = endpoint;
               });
             }
