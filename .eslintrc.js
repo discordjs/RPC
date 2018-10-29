@@ -66,10 +66,11 @@ module.exports = {
   globals: {
     WebAssembly: false,
     BigInt: false,
-    BigInt64Array,
-    BigUint64Array,
+    BigInt64Array: false,
+    BigUint64Array: false,
     URL: false,
     Atomics: false,
     SharedArrayBuffer: false,
+    queueMicrotask: false,
   },
 };
