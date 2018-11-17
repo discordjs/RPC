@@ -1,6 +1,6 @@
 {
   "name": "discord-rpc",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "A simple RPC client for Discord",
   "keywords": [
     "discord",
@@ -29,8 +29,8 @@
     "prepublishOnly": "npm run lint && npm run build:browser"
   },
   "dependencies": {
-    "node-fetch": "^2.1.2",
-    "ws": "^5.2.1"
+    "node-fetch": "^2.3.0",
+    "ws": "^6.1.1"
   },
   "peerDependencies": {
     "register-scheme": "github:devsnek/node-register-scheme"
