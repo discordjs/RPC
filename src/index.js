@@ -1,9 +1,9 @@
 'use strict';
 
-const util = require('./Util');
+const util = require('./util');
 
 module.exports = {
-  Client: require('./Client'),
+  Client: require('./client'),
   register(id) {
     return util.register(`discord-${id}`);
   },

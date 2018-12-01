@@ -1,6 +1,6 @@
 'use strict';
 
 module.exports = {
-  ipc: require('./IPC'),
-  websocket: require('./WebSocket'),
+  ipc: require('./ipc'),
+  websocket: require('./websocket'),
 };

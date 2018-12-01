@@ -4,8 +4,8 @@ const EventEmitter = require('events');
 const { setTimeout, clearTimeout } = require('timers');
 const fetch = require('node-fetch');
 const transports = require('./transports');
-const { RPCCommands, RPCEvents } = require('./Constants');
-const { pid: getPid, uuid } = require('./Util');
+const { RPCCommands, RPCEvents } = require('./constants');
+const { pid: getPid, uuid } = require('./util');
 
 function subKey(event, args) {
   return `${event}${JSON.stringify(args)}`;
