@@ -35,9 +35,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (mainWindow === null) {
-    createWindow();
-  }
+  if (mainWindow === null) createWindow();
 });
 
 // don't change the client id if you want this example to work
@@ -50,9 +48,7 @@ const rpc = new DiscordRPC.Client({ transport: 'ipc' });
 const startTimestamp = new Date();
 
 async function setActivity() {
-  if (!rpc || !mainWindow) {
-    return;
-  }
+  if (!rpc || !mainWindow) return;
 
   const boops = await mainWindow.webContents.executeJavaScript('window.boops');
 
