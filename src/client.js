@@ -212,6 +212,7 @@ class RPCClient extends EventEmitter {
     const response = await this.fetch('POST', '/oauth2/token', {
       data: new URLSearchParams({
         client_id: this.clientId,
+        client_secret: clientSecret,
         code,
         grant_type: 'authorization_code',
         redirect_uri: redirectUri,
