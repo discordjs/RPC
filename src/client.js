@@ -56,7 +56,7 @@ class RPCClient extends EventEmitter {
         method,
         body: data,
         headers: {
-          Authorzation: `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${this.accessToken}`,
         },
       }).then((r) => r.json());
 
