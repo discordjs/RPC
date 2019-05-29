@@ -6,7 +6,7 @@ module.exports = {
   output: {
     path: __dirname,
     filename: 'browser.js',
-    library: 'Snekfetch',
+    library: 'RPC',
     libraryTarget: 'umd',
   },
 };
