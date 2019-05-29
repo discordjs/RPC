@@ -8,6 +8,9 @@ function keyMirror(arr) {
   return tmp;
 }
 
+
+exports.browser = typeof window !== 'undefined';
+
 exports.RPCCommands = keyMirror([
   'DISPATCH',
   'AUTHORIZE',
