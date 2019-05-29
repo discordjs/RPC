@@ -1,7 +1,8 @@
 'use strict';
 
 const EventEmitter = require('events');
-const WebSocket = require('ws');
+const { browser } = require('./constants');
+const WebSocket = browser ? window.WebSocket : require('ws');
 
 const pack = (d) => JSON.stringify(d);
 const unpack = (s) => JSON.parse(s);
