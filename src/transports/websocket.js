@@ -1,7 +1,9 @@
 'use strict';
 
 const EventEmitter = require('events');
-const { browser } = require('./constants');
+const { browser } = require('../constants');
+
+// eslint-disable-next-line
 const WebSocket = browser ? window.WebSocket : require('ws');
 
 const pack = (d) => JSON.stringify(d);
