@@ -23,7 +23,7 @@ function subKey(event, args) {
  */
 class RPCClient extends EventEmitter {
   /**
-   * @param {RPCClientOptions} [options] Options for the client
+   * @param {RPCClientOptions} [options] Options for the client.
    * You must provide a transport
    */
   constructor(options = {}) {
