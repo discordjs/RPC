@@ -102,7 +102,11 @@ class RPCClient extends EventEmitter {
         clearTimeout(timeout);
         resolve(this);
       });
-      this.transport.once('close', reject);
+      this.transport.once('close', () => {
+        this.emit('disconnected');
+        this._connectPromise = undefined;
+        reject();
+      });
       this.transport.connect().catch(reject);
     });
     return this._connectPromise;
