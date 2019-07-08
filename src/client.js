@@ -4,7 +4,7 @@ const EventEmitter = require('events');
 const { setTimeout, clearTimeout } = require('timers');
 const fetch = require('node-fetch');
 const transports = require('./transports');
-const { RPCCommands, RPCEvents } = require('./constants');
+const { RPCCommands, RPCEvents, RelationshipTypes } = require('./constants');
 const { pid: getPid, uuid } = require('./util');
 
 function subKey(event, args) {
@@ -492,8 +492,8 @@ class RPCClient extends EventEmitter {
       }
     }
     if (
-      args.largeImageKey || args.largeImageText ||
-      args.smallImageKey || args.smallImageText
+      args.largeImageKey || args.largeImageText
+      || args.smallImageKey || args.smallImageText
     ) {
       assets = {
         large_image: args.largeImageKey,
@@ -575,7 +575,7 @@ class RPCClient extends EventEmitter {
     });
   }
 
-  async createLobby(type, capacity, metadata) {
+  createLobby(type, capacity, metadata) {
     return this.request(RPCCommands.CREATE_LOBBY, {
       type,
       capacity,
@@ -583,7 +583,7 @@ class RPCClient extends EventEmitter {
     });
   }
 
-  async updateLobby(lobby, { type, owner, capacity, metadata } = {}) {
+  updateLobby(lobby, { type, owner, capacity, metadata } = {}) {
     return this.request(RPCCommands.UPDATE_LOBBY, {
       id: lobby.id || lobby,
       type,
@@ -599,7 +599,7 @@ class RPCClient extends EventEmitter {
     });
   }
 
-  async connectToLobby(id, secret) {
+  connectToLobby(id, secret) {
     return this.request(RPCCommands.CONNECT_TO_LOBBY, {
       id,
       secret,
@@ -625,6 +625,15 @@ class RPCClient extends EventEmitter {
       user_id: user.id || user,
       metadata,
     });
+  }
+
+  getRelationships() {
+    const types = Object.keys(RelationshipTypes);
+    return this.request(RPCCommands.GET_RELATIONSHIPS)
+      .then((o) => o.relationships.map((r) => ({
+        ...r,
+        type: types[r.type],
+      })));
   }
 
   /**

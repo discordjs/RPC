@@ -41,6 +41,13 @@ client.on('ready', () => {
     spectateSecret: 'sniff',
     instance: true,
   }).then(console.log);
+
+  client.getRelationships().then((relations) => {
+    relations
+      .filter((r) => r.type === 'IMPLICIT')
+      .map((r) => `${r.user.username}#${r.user.discriminator}`)
+      .forEach((c) => console.log(c));
+  });
 });
 
 client.login({ clientId }).catch(console.error);
