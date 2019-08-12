@@ -4,6 +4,8 @@ const net = require('net');
 const EventEmitter = require('events');
 const fetch = require('node-fetch');
 const { uuid } = require('../util');
+const fs = require('fs');
+const os = require('os');
 
 const OPCodes = {
   HANDSHAKE: 0,
@@ -18,6 +20,10 @@ function getIPCPath(id) {
     return `\\\\?\\pipe\\discord-ipc-${id}`;
   }
   const { env: { XDG_RUNTIME_DIR, TMPDIR, TMP, TEMP } } = process;
+
+  if(fs.existsSync(`/run/user/${os.userInfo().uid}/app/com.discordapp.Discord/discord-ipc-${id}`))
+    return `/run/user/${os.userInfo().uid}/app/com.discordapp.Discord/discord-ipc-${id}`;
+
   const prefix = XDG_RUNTIME_DIR || TMPDIR || TMP || TEMP || '/tmp';
   return `${prefix.replace(/\/$/, '')}/discord-ipc-${id}`;
 }
