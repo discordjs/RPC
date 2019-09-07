@@ -103,6 +103,9 @@ class RPCClient extends EventEmitter {
         resolve(this);
       });
       this.transport.once('close', () => {
+        this._expecting.forEach((e) => {
+          e.reject(new Error('connection closed'));
+        });
         this.emit('disconnected');
         reject();
       });
