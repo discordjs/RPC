@@ -70,6 +70,7 @@ module.exports = {
     }],
     'import/extensions': 'off',
     'import/prefer-default-export': 'off',
+    'import/no-unresolved': 'off',
   },
   globals: {
     WebAssembly: false,

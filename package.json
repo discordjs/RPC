@@ -1,6 +1,6 @@
 {
   "name": "discord-rpc",
-  "version": "3.0.2",
+  "version": "3.1.0",
   "description": "A simple RPC client for Discord",
   "keywords": [
     "discord",
@@ -36,6 +36,7 @@
     "register-scheme": "github:devsnek/node-register-scheme"
   },
   "devDependencies": {
+    "babel-eslint": "^10.0.3",
     "discord.js-docgen": "github:discordjs/docgen",
     "electron": "^6.0.9",
     "eslint": "^6.1.0",
