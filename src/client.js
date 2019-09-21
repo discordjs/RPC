@@ -373,8 +373,8 @@ class RPCClient extends EventEmitter {
    * have explicit permission from the user.
    * @returns {Promise}
    */
-  selectTextChannel(id, { timeout, force = false } = {}) {
-    return this.request(RPCCommands.SELECT_TEXT_CHANNEL, { channel_id: id, timeout, force });
+  selectTextChannel(id, { timeout } = {}) {
+    return this.request(RPCCommands.SELECT_TEXT_CHANNEL, { channel_id: id, timeout });
   }
 
   /**
