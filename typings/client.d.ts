@@ -39,6 +39,7 @@ declare type SelectChannelOptions = {
 
 declare interface RPCClientOptions extends ClientOptions {
     transport: 'websocket' | 'ipc'
+    clientId: string
 }
 
 declare type UserVoiceSettings = {

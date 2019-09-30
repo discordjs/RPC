@@ -9,6 +9,7 @@
     "remote procedural call"
   ],
   "main": "src/index.js",
+  "types": "typings/index.d.ts",
   "jsdelivr": "browser.js",
   "unpkg": "browser.js",
   "author": "snek <me@gus.host>",
