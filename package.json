@@ -36,7 +36,9 @@
     "register-scheme": "github:devsnek/node-register-scheme"
   },
   "devDependencies": {
+    "@types/node": "^12.7.8",
     "babel-eslint": "^10.0.3",
+    "discord.js": "^11.5.1",
     "discord.js-docgen": "github:discordjs/docgen",
     "electron": "^6.0.9",
     "eslint": "^6.1.0",
