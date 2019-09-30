@@ -1,2 +1,2 @@
-export {RPCClient} from './client';
+export {RPCClient as Client} from './client';
 export {register} from './util';
