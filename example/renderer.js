@@ -7,7 +7,8 @@ const { webFrame } = require('electron');
 const snek = document.getElementById('snek');
 const counter = document.getElementById('boops');
 
-webFrame.setZoomLevelLimits(1, 1);
+webFrame.setVisualZoomLevelLimits(1, 1);
+webFrame.setLayoutZoomLevelLimits(0, 0);
 
 window.boops = 0;
 function boop() {

@@ -15,6 +15,9 @@ function createWindow() {
     height: 380,
     resizable: false,
     titleBarStyle: 'hidden',
+    webPreferences: {
+      nodeIntegration: true,
+    },
   });
 
   mainWindow.loadURL(url.format({
