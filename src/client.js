@@ -183,7 +183,7 @@ class RPCClient extends EventEmitter {
       }
       this._expecting.delete(message.nonce);
     } else {
-      const subid = subKey(message.evt, message.args);
+      const subid = message.args ? subKey(message.evt, message.args) : subKey(message.evt, { channel_id: message.data.channel_id });
       if (!this._subscriptions.has(subid)) {
         return;
       }
