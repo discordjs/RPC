@@ -60,7 +60,7 @@ class RPCClient extends EventEmitter {
         },
       }).then((r) => r.json());
 
-    this.fetch.endpoint = 'https://discordapp.com/api';
+    this.fetch.endpoint = 'https://discord.com/api';
 
     /**
      * Raw transport userd
