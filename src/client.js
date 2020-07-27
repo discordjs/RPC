@@ -58,7 +58,12 @@ class RPCClient extends EventEmitter {
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
         },
-      }).then((r) => r.json());
+      }).then((r) => {
+        if (!r.ok) {
+          throw new Error(r.status);
+        }
+        return r.json();
+      });
 
     this.fetch.endpoint = 'https://discord.com/api';
 
@@ -212,7 +217,6 @@ class RPCClient extends EventEmitter {
       scopes,
       client_id: this.clientId,
       rpc_token: rpcToken,
-      redirect_uri: redirectUri,
     });
 
     const response = await this.fetch('POST', '/oauth2/token', {

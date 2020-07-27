@@ -47,10 +47,10 @@ async function findEndpoint(tries = 0) {
   const endpoint = `http://127.0.0.1:${6463 + (tries % 10)}`;
   try {
     const r = await fetch(endpoint);
-    if (r.status !== 401) {
-      return findEndpoint(tries + 1);
+    if (r.status === 404) {
+      return endpoint;
     }
-    return endpoint;
+    return findEndpoint(tries + 1);
   } catch (e) {
     return findEndpoint(tries + 1);
   }
