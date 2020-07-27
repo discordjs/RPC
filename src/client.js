@@ -58,11 +58,14 @@ class RPCClient extends EventEmitter {
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
         },
-      }).then((r) => {
+      }).then(async (r) => {
+        const body = await r.json();
         if (!r.ok) {
-          throw new Error(r.status);
+          const e = new Error(r.status);
+          e.body = body;
+          throw e;
         }
-        return r.json();
+        return body;
       });
 
     this.fetch.endpoint = 'https://discord.com/api';

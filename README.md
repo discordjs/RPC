@@ -20,7 +20,7 @@
 ### __Browser__ Example
 
 ```javascript
-const clientId = '187406016902594560';
+const clientId = '287406016902594560';
 const scopes = ['rpc', 'rpc.api', 'messages.read'];
 
 const client = new RPC.Client({ transport: 'websocket' });
