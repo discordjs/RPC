@@ -29,7 +29,7 @@
     "prepublishOnly": "npm run lint && npm run build:browser"
   },
   "dependencies": {
-    "node-fetch": "2.6.0",
+    "node-fetch": "2.6.1",
     "ws": "7.1.2"
   },
   "peerDependencies": {
