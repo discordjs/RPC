@@ -23,9 +23,7 @@ class WebSocketTransport extends EventEmitter {
 
     this.ws = new WebSocket(
       `ws://127.0.0.1:${port}/?v=1&client_id=${this.client.clientId}`,
-      {
-        origin: this.client.options.origin,
-      },
+      browser ? undefined : { origin: this.client.options.origin },
     );
     this.ws.onopen = this.onOpen.bind(this);
     this.ws.onclose = this.onClose.bind(this);
