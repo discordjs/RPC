@@ -45,16 +45,16 @@ class User extends Base {
      * The flags for this user
      * @type {UserFlags}
      */
-    this.flags = new UserFlags(data.flags);
+    this.flags = new UserFlags(typeof data.flags === 'number' ? data.flags : data.public_flags);
 
     /**
      * The premium (Nitro) type of this user
      * 0 - None
      * 1 - Nitro Classic
      * 2 - Nitro
-     * @type {0 | 1 | 3}
+     * @type {?(0 | 1 | 2)}
      */
-    this.premiumType = data.premium_type;
+    this.premiumType = data.premium_type || null;
   }
 }
 

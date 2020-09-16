@@ -6,7 +6,7 @@ const fetch = require('node-fetch');
 const transports = require('./transports');
 const { API_BASE_URL, RPCCommands, RPCEvents } = require('./constants');
 const { pid: getPid, uuid } = require('./util');
-const { Guild } = require('./struct');
+const { Channel, Guild, User } = require('./struct');
 
 /**
  * @typedef {string} Snowflake A Twitter snowflake, except the epoch is 2015-01-01T00:00:00.000Z
@@ -14,15 +14,7 @@ const { Guild } = require('./struct');
  */
 
 /**
- * @typedef {Object} PartialChannel A channel fetched via {@link RPCClient#getChannels}
- * @prop {string} id The id of the channel
- * @prop {string} name The name of the channel
- * @prop {number} type The type of the channel {@link https://discord.com/developers/docs/resources/channel#channel-object-channel-types}
- */
-
-/**
- * @typedef {RPCClientOptions}
- * @extends {ClientOptions}
+ * @typedef {Object} RPCClientOptions
  * @prop {string} transport RPC transport. one of `ipc` or `websocket`
  */
 
@@ -140,12 +132,12 @@ class RPCClient extends EventEmitter {
   }
 
   /**
-   * @typedef {RPCLoginOptions}
+   * @typedef {Object} RPCLoginOptions
    * @param {string} clientId Client ID
    * @param {string} [clientSecret] Client secret
    * @param {string} [accessToken] Access token
    * @param {string} [rpcToken] RPC token
-   * @param {string} [tokenEndpoint] Token endpoint
+   * @param {string} [redirectUri] Login callback endpoint
    * @param {string[]} [scopes] Scopes to authorize with
    */
 
@@ -209,7 +201,7 @@ class RPCClient extends EventEmitter {
     } else if (command === RPCCommands.DISPATCH) {
       if (event === RPCEvents.READY) {
         if (data.user) {
-          this.user = data.user;
+          this.user = new User(data.user);
         }
         this.emit('connected');
       }
@@ -299,8 +291,9 @@ class RPCClient extends EventEmitter {
    * @param {number} [timeout] Request timeout
    * @returns {Promise<Channel>}
    */
-  getChannel(id, timeout) {
-    return this.request(RPCCommands.GET_CHANNEL, { channel_id: id, timeout });
+  async getChannel(id, timeout) {
+    const data = this.request(RPCCommands.GET_CHANNEL, { channel_id: id, timeout });
+    return new Channel(this, data);
   }
 
   /**
@@ -314,7 +307,7 @@ class RPCClient extends EventEmitter {
       timeout,
       guild_id: id,
     });
-    return channels;
+    return channels.map((data) => new Channel(this, data));
   }
 
   /**

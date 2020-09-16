@@ -1,6 +1,7 @@
 'use strict';
 
 const Base = require('./Base');
+const User = require('./User');
 
 /**
  * Represents a Channel
@@ -77,7 +78,7 @@ class Channel extends Base {
       serverDeaf: state.voice_state.deaf,
       selfMute: state.voice_state.self_mute,
       selfDeaf: state.voice_state.self_deaf,
-      user: state.user,
+      user: new User(state.user),
     })) : null;
   }
 
