@@ -14,6 +14,7 @@ function keyMirror(arr) {
 }
 
 exports.API_BASE_URL = 'https://discord.com/api';
+exports.CDN_URL = 'https://cdn.discordapp.com';
 
 exports.browser = typeof window !== 'undefined';
 

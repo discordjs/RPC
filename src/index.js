@@ -7,6 +7,7 @@ module.exports = {
   Constants: require('./constants'),
 
   // Classes
+  ClientApplication: structures.ClientApplication,
   Channel: structures.Channel,
   Client: require('./client'),
   Guild: structures.Guild,

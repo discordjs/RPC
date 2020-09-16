@@ -58,6 +58,29 @@ class User extends Base {
   }
 
   /**
+   * Get this user's avatar URL.
+   * @param {number} [size] The size
+   * @returns {?string}
+   */
+  avatarURL(size) {
+    if (!this.avatar) {
+      return null;
+    }
+    return `${this.client.cdnURL}/avatars/${this.id}/${this.avatar}.${
+      this.avatar.startsWith('a_') ? 'gif' : 'png'
+    }${size ? `?size=${size}` : ''}`;
+  }
+
+  /**
+   * This user's default avatar URL.
+   * @type {string}
+   * @readonly
+   */
+  get defaultAvatarURL() {
+    return `${this.client.cdnURL}/embed/avatars/${this.discriminator % 5}`;
+  }
+
+  /**
    * This user's discord tag, username#discriminator
    * @type {string}
    * @readonly

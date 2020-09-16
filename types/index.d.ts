@@ -1,11 +1,14 @@
+import { Input } from "electron";
+
 type DualRecord<T> = Record<T, T>;
 
 declare module 'discord-rpc' {
+  import EventEmitter from 'events';
 
   export const Constants: {
     API_BASE_URL: string;
     browser: boolean;
-    ChannelTypes: ['text', 'dm', 'voice', 'group', 'category', 'news', 'store']
+    ChannelTypes: ['text', 'dm', 'voice', 'group', 'category', 'news', 'store'];
     RPCCommands: DualRecord<RPCCommand>;
     RPCEvents: DualRecord<RPCEvent>;
     RPCErrors: {
@@ -42,12 +45,12 @@ declare module 'discord-rpc' {
 
   class Base {
     public readonly client: RPCClient;
-    public id: string;
+    public id: Snowflake;
   }
 
-  export class Channel {
+  export class Channel extends Base {
     public bitrate: number;
-    public guildId: string;
+    public guildId: Snowflake;
     public name: string;
     public position: number;
     public topic: string | null;
@@ -58,7 +61,7 @@ declare module 'discord-rpc' {
     public getGuild(timeout?: number): Promise<Guild>;
   }
 
-  export class Guild {
+  export class Guild extends Base {
     public iconURL: string | null;
     public name: string;
     public vanityURLCode: string | null;
@@ -66,14 +69,80 @@ declare module 'discord-rpc' {
     public getChannels(timeout?: number): Promise<Channel[]>;
   }
 
-  export class User {
+  class RPCClient extends EventEmitter {
+    public constructor(options: RPCClientOptions);
+    private config: RPCConfig | null;
+    private transport: Transport | null;
+    private _connectPromise: Promise<this> | null;
+    private _expecting: Map<string, {
+      reject: (err: Error | string) => void;
+      resolve: (data: object) => void
+    }>
+
+    public accessToken: string | null;
+    public readonly apiURL: string;
+    public application: ClientApplication | null;
+    public clientId: Snowflake | null;
+    public readonly cdnURL: string;
+    public options: RPCClientOptions;
+    public user: User | null;
+
+    public on(event: RPCEvent, listener: (data: Record<string, any>) => void): this;
+    public on(event: 'error', listener: (error: Error) => void): this;
+    public on(event: 'ready', listener: () => void): this;
+    public on(event: 'disconnected', listener: () => void): this;
+
+    public captureShortcut<T>(callback: (key: any, stop: (param: T) => Promise<void>) => void): Promise<T>;
+    public clearActivity(pid?: number): Promise<void>;
+    public closeJoinRequest(user: User | Snowflake): Promise<void>;
+    public connect(clientId: Snowflake): Promise<this>;
+    public destroy(): void;
+    public getChannel(id: Snowflake, timeout?: number): Promise<Channel>;
+    public getChannels(guildId: Snowflake, timeout?: number): Promise<Channel[]>;
+    public getGuild(id: Snowflake, timeout?: number): Promise<Guild>;
+    public getGuilds(timeout?: number): Promise<PartialGuild[]>;
+    public getVoiceSettings(): Promise<VoiceSettings>;
+    public login(options: RPCLoginOptions): Promise<this>;
+    public selectTextChannel(id: Snowflake, timeout?: number): Promise<Channel>;
+    public selectVoiceChannel(id: Snowflake, options: { force?: boolean; timeout?: number }): Promise<Channel>;
+    public sendJoinInvite(user: User | Snowflake): Promise<void>;
+    public sendJoinRequest(user: User | Snowflake): Promise<void>;
+    public setActivity(data: PresenceData, pid?: number): Promise<void>;
+    public setCertifiedDevices(devices: CertifiedDevice[]): Promise<void>;
+    public setUserVoiceSettings(id: Snowflake, settings: Partial<UserVoiceSettings>): Promise<UserVoiceSettings>;
+    public setVoiceSettings(settings: Partial<VoiceSettings>): Promise<VoiceSettings>;
+    public subscribe(
+      event: RPCEvent,
+      args: Record<string, string>,
+      callback: (data: Record<string, string>) => void
+    ): Promise<() => Promise<this>>;
+
+    private authenticate(accessToken: string): Promise<this>;
+    private authorize(options: Omit<RPCLoginOptions, 'clientId' | 'accessToken'>): Promise<string>;
+    private fetch(
+      method: string,
+      path: string,
+      options?: {
+        data?: object;
+        query?: URLSearchParams | string | [string, string][] | object
+      }
+    ): Promise<object>;
+    private request(cmd: RPCCommand, args?: Record<string, any>, event?: RPCEvent): Promise<object>;
+  }
+
+  export { RPCClient as Client };
+
+  export class User extends Base {
     public avatar: string;
     public bot: boolean;
+    public readonly defaultAvatarURL: string;
     public discriminator: string;
     public flags: UserFlags;
     public premiumType: 0 | 1 | 2 | null;
     public readonly tag: string;
     public username: string;
+
+    public avatarURL(size?: number): string | null;
   }
 
   export class UserFlags {
@@ -83,7 +152,70 @@ declare module 'discord-rpc' {
     public has(bit: number | UserFlagsString | UserFlagsString[]): boolean;
   }
 
+  // Transports
+  interface Transport {
+    connect(): Promise<void>;
+    onClose(): void;
+    ping(): void;
+    close(): void;
+    send(data: object): void;
+  }
+
   type ChannelType = (typeof Constants.ChannelTypes)[number];
+
+  interface CertifiedDevice {
+    type: 'audioinput' | 'audiooutput' | `videoinput`;
+    id: string;
+    vendor: { name: string; url: string };
+    model: { name: string; url: string };
+    related: string[];
+    echoCancellation?: boolean;
+    noiseSuppression?: boolean;
+    automaticGainControl?: boolean;
+    hardwareMute?: boolean;
+  }
+
+  type DateResolvable = Date | string | number;
+
+  interface PresenceData {
+    state?: string;
+    details?: string;
+    instance?: boolean;
+    timestamps?: {
+      start?: DateResolvable;
+      end?: DateResolvable
+    };
+    assets?: {
+      largeImage?: string;
+      smallImage?: string;
+      largeImageText?: string;
+      smallImageText?: string;
+    };
+    party?: {
+      id: string;
+      size?: [number, number];
+    };
+    secrets?: {
+      join?: string;
+      spectate?: string;
+      match?: string;
+    }
+  }
+
+  interface RPCConfig {
+    cdn_host: string;
+    api_endpoint: string;
+    enviroment: string;
+  }
+
+  interface RPCLoginOptions {
+    clientId: Snowflake;
+    clientSecret?: string;
+    accessToken?: string;
+    rpcToken?: string | true;
+    redirectUri?: string;
+    scopes?: string[];
+  }
 
   type RPCCommand =
     | 'AUTHENTICATE'
@@ -128,7 +260,7 @@ declare module 'discord-rpc' {
     | 'VOICE_SETTINGS_UPDATE'
     | 'VOICE_STATE_CREATE'
     | 'VOICE_STATE_DELETE'
-    | 'VOICE_STATE_UPDATE'
+    | 'VOICE_STATE_UPDATE';
 
   type UserFlagsString =
     | 'DISCORD_EMPLOYEE'
@@ -143,5 +275,51 @@ declare module 'discord-rpc' {
     | 'SYSTEM'
     | 'BUGHUNTER_LEVEL_2'
     | 'VERIFIED_BOT'
-    | 'VERIFIED_DEVELOPER'
+    | 'VERIFIED_DEVELOPER';
+
+  interface UserVoiceSettings {
+    user_id: Snowflake;
+    pan: { left: number; right: number };
+    volume: number;
+    mute: boolean;
+  }
+
+  interface ShortcutKeyCombo {
+    type: number;
+    code: number;
+    name: string;
+  }
+
+  interface VoiceSettings {
+    automaticGainControl: boolean;
+    echoCancellation: boolean;
+    noiseSuppression: boolean;
+    qos: boolean;
+    silenceWarning: boolean;
+    deaf: boolean;
+    mute: boolean;
+    input: {
+      device: string;
+      volume: number;
+      availableDevices: AvailableDevice
+    };
+    output: {
+      device: string;
+      volume: number;
+      availableDevices: AvailableDevice
+    };
+    mode: {
+      type: string;
+      autoThreshold: boolean;
+      delay: number;
+      shortcut?: ShortcutKeyCombo[];
+    };
+  }
+
+  type Snowflake = string;
+
+  // Partials
+  interface PartialGuild extends Guild {
+    vanityURLCode: null;
+  }
 }

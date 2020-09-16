@@ -4,9 +4,36 @@ const EventEmitter = require('events');
 const { setTimeout, clearTimeout } = require('timers');
 const fetch = require('node-fetch');
 const transports = require('./transports');
-const { API_BASE_URL, RPCCommands, RPCEvents } = require('./constants');
+const { API_BASE_URL, RPCCommands, RPCEvents, CDN_URL } = require('./constants');
 const { pid: getPid, uuid } = require('./util');
-const { Channel, Guild, User } = require('./struct');
+const { ClientApplication, Channel, Guild, User } = require('./struct');
+
+const _formatVoiceSettings = (data) => ({
+  automaticGainControl: data.automatic_gain_control,
+  echoCancellation: data.echo_cancellation,
+  noiseSuppression: data.noise_suppression,
+  qos: data.qos,
+  silenceWarning: data.silence_warning,
+  deaf: data.deaf,
+  mute: data.mute,
+  input: {
+    availableDevices: data.input.available_devices,
+    device: data.input.device_id,
+    volume: data.input.volume,
+  },
+  output: {
+    availableDevices: data.output.available_devices,
+    device: data.output.device_id,
+    volume: data.output.volume,
+  },
+  mode: {
+    type: data.mode.type,
+    autoThreshold: data.mode.auto_threshold,
+    threshold: data.mode.threshold,
+    shortcut: data.mode.shortcut,
+    delay: data.mode.delay,
+  },
+});
 
 /**
  * @typedef {string} Snowflake A Twitter snowflake, except the epoch is 2015-01-01T00:00:00.000Z
@@ -30,9 +57,30 @@ class RPCClient extends EventEmitter {
   constructor(options = {}) {
     super();
 
+    /**
+     * The config recieved after connecting
+     * @type {?Object}
+     * @private
+     */
+    this.config = null;
+
+    /**
+     * Options for this client
+     * @type {RPCClientOptions}
+     */
     this.options = options;
 
-    this.accessToken = null;
+    /**
+     * The connected user's OAuth2 Token
+     * @type {?string}
+     * @name RPCClient#accessToken
+     */
+    Object.defineProperty(this, 'accessToken', { value: null, writable: true });
+
+    /**
+     * The client ID used
+     * @type {?string}
+     */
     this.clientId = null;
 
     /**
@@ -54,20 +102,50 @@ class RPCClient extends EventEmitter {
 
     /**
      * Raw transport used
-     * @type {RPCTransport}
+     * @type {IPCTransport|WebSocketTransport}
      * @private
      */
     this.transport = new Transport(this);
     this.transport.on('message', this._onRpcMessage.bind(this));
+    this.transport.on('close', this._onRpcClose.bind(this));
 
     /**
      * Map of nonces being expected from the transport
-     * @type {Map}
+     * @type {Map<string, object}
      * @private
      */
     this._expecting = new Map();
 
-    this._connectPromise = undefined;
+    /**
+     * The connection promise
+     * @type {?Promise<this>}
+     * @private
+     */
+    this._connectPromise = null;
+  }
+
+  /**
+   * The Discord API base URL
+   * @type {string}
+   * @readonly
+   */
+  get apiURL() {
+    if (this.config && this.config.api_endpoint) {
+      return `https:${this.config.api_endpoint}`;
+    }
+    return API_BASE_URL;
+  }
+
+  /**
+   * The Discord CDN base url
+   * @type {string}
+   * @readonly
+   */
+  get cdnURL() {
+    if (this.config && this.config.cdn_url) {
+      return `https://${this.config.cdn_url}`;
+    }
+    return CDN_URL;
   }
 
   /**
@@ -80,7 +158,7 @@ class RPCClient extends EventEmitter {
    * @private
    */
   async fetch(method, path, { data, query } = {}) {
-    const response = await fetch(`${API_BASE_URL}/${path}${query ? `?${new URLSearchParams(query)}` : ''}`, {
+    const response = await fetch(`${this.apiURL}/${path}${query ? `?${new URLSearchParams(query)}` : ''}`, {
       method,
       body: data,
       headers: {
@@ -99,34 +177,34 @@ class RPCClient extends EventEmitter {
   /**
    * Search and connect to RPC.
    * @param {string} clientId Client ID
+   * @returns {Promise<this>}
    */
   connect(clientId) {
     if (this._connectPromise) {
       return this._connectPromise;
     }
     this._connectPromise = new Promise((resolve, reject) => {
-      this.clientId = clientId;
-      const timeout = setTimeout(() => reject(new Error('RPC_CONNECTION_TIMEOUT')), 10e3);
-      timeout.unref();
-      let resolved = false;
+      /* eslint-disable no-use-before-define */
       const onConnect = () => {
+        this.clientId = clientId;
+        this.transport.off('close', onClose);
         clearTimeout(timeout);
         resolve(this);
-        resolved = true;
       };
-      this.once('connected', onConnect);
-      this.transport.once('close', () => {
-        this._expecting.forEach((e) => {
-          e.reject(new Error('connection closed'));
+      const onClose = () => {
+        this._expecting.forEach((expecting) => {
+          expecting.reject(new Error('Connection Closed'));
         });
-        this.emit('disconnected');
-        this.off('connected', onConnect);
-        // prevent the promise resolving twice
-        if (!resolved) {
-          reject(new Error('connection closed'));
-        }
-      });
-      this.transport.connect().catch(reject);
+        this.off('connect', onConnect);
+        clearTimeout(timeout);
+        reject(new Error('Connection Closed'));
+      };
+      /* eslint-enable no-use-before-define */
+      this.transport.on('close', onClose);
+      const timeout = setTimeout(() => {
+        this.transport.off('close', onClose);
+        onClose();
+      }, 10e3).unref();
     });
     return this._connectPromise;
   }
@@ -136,7 +214,7 @@ class RPCClient extends EventEmitter {
    * @param {string} clientId Client ID
    * @param {string} [clientSecret] Client secret
    * @param {string} [accessToken] Access token
-   * @param {string} [rpcToken] RPC token
+   * @param {string|true} [rpcToken] RPC token
    * @param {string} [redirectUri] Login callback endpoint
    * @param {string[]} [scopes] Scopes to authorize with
    */
@@ -148,7 +226,7 @@ class RPCClient extends EventEmitter {
    * @example client.login({ clientId: '1234567', clientSecret: 'abcdef123' });
    * @returns {Promise<this>}
    */
-  async login(options = {}) {
+  async login(options) {
     let { clientId, accessToken } = options;
     await this.connect(clientId);
     if (!options.scopes) {
@@ -163,18 +241,28 @@ class RPCClient extends EventEmitter {
 
   /**
    * Make a request.
-   * @param {string} cmd The Command to send
+   * @param {string} command The Command to send
    * @param {Object} [args={}] Arguments for the command
-   * @param {string} [evt] The event to send
-   * @returns {Promise}
+   * @param {string} [event] The event to send
+   * @returns {Promise<object>}
    * @private
    */
-  request(cmd, args, evt) {
+  request(command, args, event) {
     return new Promise((resolve, reject) => {
       const nonce = uuid();
-      this.transport.send({ cmd, args, evt, nonce });
+      this.transport.send({ cmd: command, args, evt: event, nonce });
       this._expecting.set(nonce, { resolve, reject });
     });
+  }
+
+  /**
+   * @private
+   */
+  _onRpcClose() {
+    for (const { reject } of this._expecting) {
+      reject(new Error('Connection Closed'));
+    }
+    this._expecting.clear();
   }
 
   /**
@@ -202,6 +290,9 @@ class RPCClient extends EventEmitter {
       if (event === RPCEvents.READY) {
         if (data.user) {
           this.user = new User(this, data.user);
+        }
+        if (data.config) {
+          this.config = data.config;
         }
         this.emit('connected');
       }
@@ -258,8 +349,8 @@ class RPCClient extends EventEmitter {
   async authenticate(accessToken) {
     const { application, user } = await this.request('AUTHENTICATE', { access_token: accessToken });
     this.accessToken = accessToken;
-    this.application = application;
-    this.user = user;
+    this.application = new ClientApplication(this, application);
+    this.user = new User(this, user);
     this.emit('ready');
     return this;
   }
@@ -334,16 +425,16 @@ class RPCClient extends EventEmitter {
    */
   async setCertifiedDevices(devices) {
     await this.request(RPCCommands.SET_CERTIFIED_DEVICES, {
-      devices: devices.map((d) => ({
-        type: d.type,
-        id: d.uuid,
-        vendor: d.vendor,
-        model: d.model,
-        related: d.related,
-        echo_cancellation: d.echoCancellation,
-        noise_suppression: d.noiseSuppression,
-        automatic_gain_control: d.automaticGainControl,
-        hardware_mute: d.hardwareMute,
+      devices: devices.map((data) => ({
+        type: data.type,
+        id: data.uuid,
+        vendor: data.vendor,
+        model: data.model,
+        related: data.related,
+        echo_cancellation: data.echoCancellation,
+        noise_suppression: data.noiseSuppression,
+        automatic_gain_control: data.automaticGainControl,
+        hardware_mute: data.hardwareMute,
       })),
     });
   }
@@ -351,17 +442,18 @@ class RPCClient extends EventEmitter {
   /**
    * @typedef {Object} UserVoiceSettings
    * @prop {Snowflake} user_id ID of the user these settings apply to
-   * @prop {?Object} [pan] Pan settings, an object with `left` and `right` set between
-   * 0.0 and 1.0, inclusive
-   * @prop {?number} [volume=100] The volume
-   * @prop {bool} [mute] If the user is muted
+   * @prop {Object} [pan] Pan settings
+   * @prop {number} [pan.left] Left pan, set between 0.0 and 1
+   * @prop {number} [pan.right] Right pan, set between 0.0 and 1
+   * @prop {number} [volume] The volume
+   * @prop {boolean} [mute] If the user is muted
    */
 
   /**
-   * Set the voice settings for a uer, by id.
+   * Set the voice settings for a user, by id.
    * @param {Snowflake} id ID of the user to set
    * @param {UserVoiceSettings} settings Settings
-   * @returns {Promise}
+   * @returns {Promise<UserVoiceSettings>}
    */
   setUserVoiceSettings(id, settings) {
     settings.user_id = id;
@@ -372,24 +464,27 @@ class RPCClient extends EventEmitter {
    * Move the user to a voice channel.
    * @param {Snowflake} id ID of the voice channel
    * @param {Object} [options] Options
-   * @param {number} [options.timeout] Timeout for the command
    * @param {boolean} [options.force=false] Force this move
+   * @param {number} [options.timeout] Timeout for the command
    * <info>This should only be done if you have explicit permission from the user.</info>
-   * @returns {Promise}
+   * @returns {Promise<Channel>}
    */
-  selectVoiceChannel(id, { timeout, force = false } = {}) {
-    return this.request(RPCCommands.SELECT_VOICE_CHANNEL, { channel_id: id, timeout, force });
+  async selectVoiceChannel(id, { force = false, timeout } = {}) {
+    const data = await this.request(RPCCommands.SELECT_VOICE_CHANNEL, {
+      channel_id: id, timeout, force,
+    });
+    return new Channel(this, data);
   }
 
   /**
    * Move the user to a text channel.
    * @param {Snowflake} id ID of the voice channel
-   * @param {Object} [options] Options
-   * @param {number} [options.timeout] Timeout for the command
-   * @returns {Promise}
+   * @param {number} timeout Request timeout
+   * @returns {Promise<Channel>}
    */
-  selectTextChannel(id, { timeout } = {}) {
-    return this.request(RPCCommands.SELECT_TEXT_CHANNEL, { channel_id: id, timeout });
+  async selectTextChannel(id, timeout) {
+    const data = await this.request(RPCCommands.SELECT_TEXT_CHANNEL, { channel_id: id, timeout });
+    return new Channel(this, data);
   }
 
   /**
@@ -435,44 +530,19 @@ class RPCClient extends EventEmitter {
    * Get current voice settings.
    * @returns {Promise<VoiceSettings>}
    */
-  getVoiceSettings() {
-    return this.request(RPCCommands.GET_VOICE_SETTINGS)
-      .then((s) => ({
-        automaticGainControl: s.automatic_gain_control,
-        echoCancellation: s.echo_cancellation,
-        noiseSuppression: s.noise_suppression,
-        qos: s.qos,
-        silenceWarning: s.silence_warning,
-        deaf: s.deaf,
-        mute: s.mute,
-        input: {
-          availableDevices: s.input.available_devices,
-          device: s.input.device_id,
-          volume: s.input.volume,
-        },
-        output: {
-          availableDevices: s.output.available_devices,
-          device: s.output.device_id,
-          volume: s.output.volume,
-        },
-        mode: {
-          type: s.mode.type,
-          autoThreshold: s.mode.auto_threshold,
-          threshold: s.mode.threshold,
-          shortcut: s.mode.shortcut,
-          delay: s.mode.delay,
-        },
-      }));
+  async getVoiceSettings() {
+    const data = await this.request(RPCCommands.GET_VOICE_SETTINGS);
+    return _formatVoiceSettings(data);
   }
 
   /**
    * Set current voice settings, overriding the current settings until this session disconnects.
    * This also locks the settings for any other rpc sessions which may be connected.
    * @param {Partial<VoiceSettings>} settings Settings
-   * @returns {Promise}
+   * @returns {Promise<VoiceSettings>}
    */
-  setVoiceSettings(settings) {
-    return this.request(RPCCommands.SET_VOICE_SETTINGS, {
+  async setVoiceSettings(settings) {
+    const data = await this.request(RPCCommands.SET_VOICE_SETTINGS, {
       automatic_gain_control: settings.automaticGainControl,
       echo_cancellation: settings.echoCancellation,
       noise_suppression: settings.noiseSuppression,
@@ -496,12 +566,13 @@ class RPCClient extends EventEmitter {
         delay: settings.mode.delay,
       } : undefined,
     });
+    return _formatVoiceSettings(data);
   }
 
   /**
    * @callback ShortcutCallback
    * @param {ShortcutKeyCombo} key The key combination pressed
-   * @param {() => Promise<void>} stop Stop capturing shortcuts
+   * @param {(param: any) => Promise<void>} stop Stop capturing shortcuts
    */
 
   /**
@@ -510,23 +581,26 @@ class RPCClient extends EventEmitter {
    * This `stop` function must be called before disconnecting or else the user will have
    * to restart their client.
    * @param {ShortcutCallback} callback Callback handling keys
-   * @returns {Promise<Function>}
+   * @returns {Promise<any>} Resolves with the first parameter to the `stop` function
+   * once caputuring has finished
    */
   captureShortcut(callback) {
     return new Promise((resolve, reject) => {
-      const stop = async (resolvePromise = true) => {
+      let resolvePromise = true;
+      const stop = async (param) => {
         // eslint-disable-next-line no-use-before-define
         this.off(RPCEvents.CAPTURE_SHORTCUT, handler);
         await this.request(RPCCommands.CAPTURE_SHORTCUT, { action: 'STOP' });
         if (resolvePromise) {
-          resolve();
+          resolve(param);
         }
       };
       const handler = async (data) => {
         try {
           await callback(data, stop);
         } catch (error) {
-          stop(false);
+          resolvePromise = false;
+          stop();
           reject(error);
         }
       };
@@ -669,8 +743,8 @@ class RPCClient extends EventEmitter {
    * Subscribe to an event.
    * @param {string} event Name of the event e.g. `MESSAGE_CREATE`
    * @param {Object|SubscriptionCallback} [args] Args for the event e.g. `{ channel_id: '1234' }`
-   * @param {Function|SubscriptionCallback} [callback] Callback the subscription event is triggered
-   * @returns {Promise<() => this)>} Function to unsubscribe from the event
+   * @param {SubscriptionCallback} [callback] Callback the subscription event is triggered
+   * @returns {Promise<() => Promise<this>)>} Function to unsubscribe from the event
    */
   async subscribe(event, args, callback) {
     if (!callback && typeof args === 'function') {
@@ -678,24 +752,28 @@ class RPCClient extends EventEmitter {
       args = undefined;
     }
     await this.request(RPCCommands.SUBSCRIBE, args, event);
-    const handler = (data) => {
-      if (!data) {
-        return;
-      }
-      const keyEquals = (key, argsKey = key) => {
-        let value;
-        if (key.includes('.')) {
-          value = key.split('.').reduce((acc, next) => acc && acc[next], data);
-        } else {
-          value = data[key];
+    const handler = async (data) => {
+      try {
+        if (!data) {
+          return;
         }
-        return value && args[argsKey] && value === args[argsKey];
-      };
-      if (
-        keyEquals('channel_id') || keyEquals('channel.id', 'channel_id')
+        const keyEquals = (key, argsKey = key) => {
+          let value;
+          if (key.includes('.')) {
+            value = key.split('.').reduce((acc, next) => acc && acc[next], data);
+          } else {
+            value = data[key];
+          }
+          return value && args[argsKey] && value === args[argsKey];
+        };
+        if (
+          keyEquals('channel_id') || keyEquals('channel.id', 'channel_id')
         || keyEquals('guild.id', 'guild_id') || keyEquals('guild_id')
-      ) {
-        callback(data);
+        ) {
+          await callback(data);
+        }
+      } catch (error) {
+        this.emit('error', error);
       }
     };
     this.on(event, handler);
