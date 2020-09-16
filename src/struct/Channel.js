@@ -2,6 +2,7 @@
 
 const Base = require('./Base');
 const User = require('./User');
+const { ChannelTypes } = require('../constants');
 
 /**
  * Represents a Channel
@@ -24,10 +25,10 @@ class Channel extends Base {
     this.name = data.name;
 
     /**
-     * The type of this channel see {@link https://discord.com/developers/docs/resources/channel#channel-object-channel-types}
-     * @type {number}
+     * The type of this channel
+     * @type {ChannelType}
      */
-    this.type = data.type;
+    this.type = ChannelTypes[data.type];
 
     /**
      * The topic of this channel, if it has one
@@ -60,7 +61,7 @@ class Channel extends Base {
     /**
      * The Guild ID of this channel
      * <info>This is only present if fetched via {@link RPCClient#getChannel},
-     * or if the type is 1 (DM)</info>
+     * or if the type is not `dm` or `group`</info>
      * @type {?string}
      */
     this.guildId = data.guildId || null;

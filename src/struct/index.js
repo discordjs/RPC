@@ -1,6 +1,6 @@
 'use strict';
 
-exports.Guild = require('./Guild');
 exports.Channel = require('./Channel');
+exports.Guild = require('./Guild');
 exports.User = require('./User');
 exports.UserFlags = require('./UserFlags');

@@ -201,7 +201,7 @@ class RPCClient extends EventEmitter {
     } else if (command === RPCCommands.DISPATCH) {
       if (event === RPCEvents.READY) {
         if (data.user) {
-          this.user = new User(data.user);
+          this.user = new User(this, data.user);
         }
         this.emit('connected');
       }

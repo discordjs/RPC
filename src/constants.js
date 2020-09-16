@@ -18,50 +18,50 @@ exports.API_BASE_URL = 'https://discord.com/api';
 exports.browser = typeof window !== 'undefined';
 
 exports.RPCCommands = keyMirror([
-  'DISPATCH',
-  'AUTHORIZE',
   'AUTHENTICATE',
-  'GET_GUILD',
-  'GET_GUILDS',
+  'AUTHORIZE',
+  'CAPTURE_SHORTCUT',
+  'CLOSE_ACTIVITY_REQUEST',
+  'DISPATCH',
   'GET_CHANNEL',
   'GET_CHANNELS',
+  'GET_GUILD',
+  'GET_GUILDS',
+  'GET_SELECTED_VOICE_CHANNEL',
+  'GET_VOICE_SETTINGS',
+  'SELECT_TEXT_CHANNEL',
+  'SELECT_VOICE_CHANNEL',
+  'SEND_ACTIVITY_JOIN_INVITE',
+  'SET_ACTIVITY',
+  'SET_CERTIFIED_DEVICES',
+  'SET_USER_VOICE_SETTINGS',
+  'SET_VOICE_SETTINGS',
   'SUBSCRIBE',
   'UNSUBSCRIBE',
-  'SET_USER_VOICE_SETTINGS',
-  'SELECT_VOICE_CHANNEL',
-  'GET_SELECTED_VOICE_CHANNEL',
-  'SELECT_TEXT_CHANNEL',
-  'GET_VOICE_SETTINGS',
-  'SET_VOICE_SETTINGS',
-  'CAPTURE_SHORTCUT',
-  'SET_CERTIFIED_DEVICES',
-  'SET_ACTIVITY',
-  'SEND_ACTIVITY_JOIN_INVITE',
-  'CLOSE_ACTIVITY_REQUEST',
 ]);
 
 exports.RPCEvents = keyMirror([
-  'READY',
-  'ERROR',
-  'GUILD_STATUS',
-  'GUILD_CREATE',
+  'ACTIVITY_JOIN',
+  'ACTIVITY_JOIN_REQUEST',
+  'ACTIVITY_SPECTATE',
+  'CAPTURE_SHORTCUT_CHANGE',
   'CHANNEL_CREATE',
-  'VOICE_CHANNEL_SELECT',
-  'VOICE_STATE_CREATE',
-  'VOICE_STATE_UPDATE',
-  'VOICE_STATE_DELETE',
-  'VOICE_SETTINGS_UPDATE',
-  'VOICE_CONNECTION_STATUS',
+  'ERROR',
+  'GUILD_CREATE',
+  'GUILD_STATUS',
+  'MESSAGE_CREATE',
+  'MESSAGE_DELETE',
+  'MESSAGE_UPDATE',
+  'NOTIFICATION_CREATE',
+  'READY',
   'SPEAKING_START',
   'SPEAKING_STOP',
-  'MESSAGE_CREATE',
-  'MESSAGE_UPDATE',
-  'MESSAGE_DELETE',
-  'NOTIFICATION_CREATE',
-  'CAPTURE_SHORTCUT_CHANGE',
-  'ACTIVITY_JOIN',
-  'ACTIVITY_SPECTATE',
-  'ACTIVITY_JOIN_REQUEST',
+  'VOICE_CHANNEL_SELECT',
+  'VOICE_CONNECTION_STATUS',
+  'VOICE_SETTINGS_UPDATE',
+  'VOICE_STATE_CREATE',
+  'VOICE_STATE_DELETE',
+  'VOICE_STATE_UPDATE',
 ]);
 
 exports.RPCErrors = {
@@ -95,7 +95,30 @@ exports.RPCCloseCodes = {
   INVALID_ENCODING: 4005,
 };
 
-exports.LobbyTypes = {
-  PRIVATE: 1,
-  PUBLIC: 2,
+/**
+ * @typedef {string} ChannelType Channel type, one of
+ * `text` - Text Channel
+ * `dm` - DM Channel
+ * `voice` - Voice Channel
+ * `group` - Group Channel
+ * `category` - Category Channel
+ * `news` - News Channel
+ * `store` - Store Channel
+ */
+exports.ChannelTypes = ['text', 'dm', 'voice', 'group', 'category', 'news', 'store'];
+
+exports.UserFlags = {
+  DISCORD_EMPLOYEE: 1 << 0,
+  DISCORD_PARTNER: 1 << 1,
+  HYPESQUAD_EVENTS: 1 << 2,
+  BUGHUNTER_LEVEL_1: 1 << 3,
+  HOUSE_BRAVERY: 1 << 6,
+  HOUSE_BRILLIANCE: 1 << 7,
+  HOUSE_BALANCE: 1 << 8,
+  EARLY_SUPPORTER: 1 << 9,
+  TEAM_USER: 1 << 10,
+  SYSTEM: 1 << 12,
+  BUGHUNTER_LEVEL_2: 1 << 14,
+  VERIFIED_BOT: 1 << 16,
+  VERIFIED_DEVELOPER: 1 << 17,
 };

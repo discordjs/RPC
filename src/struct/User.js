@@ -56,6 +56,15 @@ class User extends Base {
      */
     this.premiumType = data.premium_type || null;
   }
+
+  /**
+   * This user's discord tag, username#discriminator
+   * @type {string}
+   * @readonly
+   */
+  get tag() {
+    return `${this.username}#${this.discriminator}`;
+  }
 }
 
 module.exports = User;
