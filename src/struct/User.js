@@ -9,13 +9,7 @@ const UserFlags = require('./UserFlags');
  */
 class User extends Base {
   constructor(client, data) {
-    super(client);
-
-    /**
-     * The ID of this user
-     * @type {Snowflake}
-     */
-    this.id = data.id;
+    super(client, data.id);
 
     /**
      * The username of this user

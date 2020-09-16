@@ -6,12 +6,18 @@
  * @private
  */
 class Base {
-  constructor(client) {
+  constructor(client, id) {
     /**
      * @type {RPCClient}
      * @name Base#client
      */
     Object.defineProperty(this, 'client', { value: client });
+
+    /**
+     * The id of this structure
+     * @type {Snowflake}
+     */
+    this.id = id;
   }
 }
 

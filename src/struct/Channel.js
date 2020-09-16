@@ -10,13 +10,7 @@ const { ChannelTypes } = require('../constants');
  */
 class Channel extends Base {
   constructor(client, data) {
-    super(client);
-
-    /**
-     * The ID of this channel
-     * @type {Snowflake}
-     */
-    this.id = data.id;
+    super(client, data.id);
 
     /**
      * The name of this channel

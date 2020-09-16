@@ -4,13 +4,7 @@ const Base = require('./Base');
 
 class ClientApplication extends Base {
   constructor(client, data) {
-    super(client);
-
-    /**
-     * The id of this application
-     * @type {Snowflake}
-     */
-    this.id = data.id;
+    super(client, data.id);
 
     /**
      * The name of this application
