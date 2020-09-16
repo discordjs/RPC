@@ -12,8 +12,6 @@ const client = new Client({
   transport: 'ipc',
 });
 
-client.transport.on('message', console.log);
-
 const { auth, channelId } = require('./auth');
 
 client.on('ready', async () => {
@@ -24,20 +22,6 @@ client.on('ready', async () => {
   } catch (error) {
     console.error(error);
     process.exit(1);
-  }
-});
-
-process.stdin.on('data', async (data) => {
-  data = data.toString();
-  if (!data.length) {
-    return;
-  }
-  try {
-    // eslint-disable-next-line no-eval
-    const res = await eval(data.toString());
-    console.log(res);
-  } catch (error) {
-    console.error(error);
   }
 });
 

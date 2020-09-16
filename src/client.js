@@ -184,9 +184,9 @@ class RPCClient extends EventEmitter {
       return this._connectPromise;
     }
     this._connectPromise = new Promise((resolve, reject) => {
+      this.clientId = clientId;
       /* eslint-disable no-use-before-define */
       const onConnect = () => {
-        this.clientId = clientId;
         this.transport.off('close', onClose);
         clearTimeout(timeout);
         resolve(this);
@@ -200,6 +200,7 @@ class RPCClient extends EventEmitter {
         reject(new Error('Connection Closed'));
       };
       /* eslint-enable no-use-before-define */
+      this.on('connect', onConnect);
       this.transport.on('close', onClose);
       const timeout = setTimeout(() => {
         this.transport.off('close', onClose);
