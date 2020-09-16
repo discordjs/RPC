@@ -713,17 +713,6 @@ class RPCClient extends EventEmitter {
   }
 
   /**
-   * Request to join the game the user is playing.
-   * @param {User|Snowflake} user The user whose game you want to request to join
-   * @returns {Promise<void>}
-   */
-  async sendJoinRequest(user) {
-    await this.request(RPCCommands.SEND_ACTIVITY_JOIN_INVITE, {
-      user_id: user.id || user,
-    });
-  }
-
-  /**
    * Reject a join request from a user.
    * @param {User|Snowflake} user The user whose request you wish to reject
    * @returns {Promise<void>}
