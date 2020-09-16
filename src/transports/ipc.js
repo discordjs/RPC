@@ -129,7 +129,7 @@ class IPCTransport extends EventEmitter {
             if (data.cmd === 'AUTHORIZE' && data.evt !== 'ERROR') {
               findEndpoint().then((endpoint) => {
                 this.client.request.endpoint = endpoint;
-              });
+              }).catch((error) => this.client.emit('error', error));
             }
             this.emit('message', data);
             break;

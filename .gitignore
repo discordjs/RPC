@@ -3,3 +3,4 @@ package-lock.json
 docs.json
 browser.js
 test/auth.js
+.vscode
