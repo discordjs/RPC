@@ -186,26 +186,25 @@ class RPCClient extends EventEmitter {
     this._connectPromise = new Promise((resolve, reject) => {
       this.clientId = clientId;
       /* eslint-disable no-use-before-define */
-      const onConnect = () => {
+      const onConnect = (() => {
         this.transport.off('close', onClose);
         clearTimeout(timeout);
         resolve(this);
-      };
-      const onClose = () => {
+      });
+      const onClose = ((error) => {
         this._expecting.forEach((expecting) => {
           expecting.reject(new Error('Connection Closed'));
         });
-        this.off('connect', onConnect);
-        clearTimeout(timeout);
-        reject(new Error('Connection Closed'));
-      };
-      /* eslint-enable no-use-before-define */
-      this.on('connect', onConnect);
-      this.transport.on('close', onClose);
-      const timeout = setTimeout(() => {
         this.transport.off('close', onClose);
-        onClose();
-      }, 10e3).unref();
+        this.off('connected', onConnect);
+        clearTimeout(timeout);
+        reject(error || new Error('Connection Closed'));
+      });
+      /* eslint-enable no-use-before-define */
+      this.once('connected', onConnect);
+      this.transport.on('close', onClose);
+      this.transport.connect().catch(onClose);
+      const timeout = setTimeout(onClose, 10e3).unref();
     });
     return this._connectPromise;
   }
