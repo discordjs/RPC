@@ -376,12 +376,11 @@ class RPCClient extends EventEmitter {
    * @param {Snowflake} id ID of the voice channel
    * @param {Object} [options] Options
    * @param {number} [options.timeout] Timeout for the command
-   * @param {boolean} [options.force] Force this move. This should only be done if you
    * have explicit permission from the user.
    * @returns {Promise}
    */
-  selectTextChannel(id, { timeout, force = false } = {}) {
-    return this.request(RPCCommands.SELECT_TEXT_CHANNEL, { channel_id: id, timeout, force });
+  selectTextChannel(id, { timeout } = {}) {
+    return this.request(RPCCommands.SELECT_TEXT_CHANNEL, { channel_id: id, timeout });
   }
 
   /**
@@ -672,7 +671,7 @@ class RPCClient extends EventEmitter {
    * Destroy the client
    */
   async destroy() {
-    this.transport.close();
+    await this.transport.close();
   }
 }
 
