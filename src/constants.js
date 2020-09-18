@@ -1,12 +1,12 @@
 'use strict';
 
-function keyMirror(arr) {
+const keyMirror = (arr) => {
   const tmp = {};
   for (const value of arr) {
     tmp[value] = value;
   }
   return tmp;
-}
+};
 
 exports.BASE_API_URL = 'https://discord.com/api';
 
