@@ -96,7 +96,7 @@ class RPCClient extends EventEmitter {
 
     /**
      * The transport used
-     * @type {IPCTransport | WebSocketTransport}
+     * @type {RPCTransport}
      * @private
      */
     this.transport = new Transport(this);
