@@ -8,6 +8,7 @@ function keyMirror(arr) {
   return tmp;
 }
 
+exports.BASE_API_URL = 'https://discord.com/api';
 
 exports.browser = typeof window !== 'undefined';
 
