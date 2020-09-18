@@ -1,5 +1,9 @@
 'use strict';
 
+/**
+ * @param {string[]} arr
+ * @returns {Object<string, string>}
+ */
 function keyMirror(arr) {
   const tmp = {};
   for (const value of arr) {
@@ -7,7 +11,6 @@ function keyMirror(arr) {
   }
   return tmp;
 }
-
 
 exports.browser = typeof window !== 'undefined';
 
