@@ -166,7 +166,6 @@ exports.RPCCloseCodes = {
   INVALID_ENCODING: 4005,
 };
 
-
 exports.LobbyTypes = {
   PRIVATE: 1,
   PUBLIC: 2,
