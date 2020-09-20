@@ -23,7 +23,7 @@
 const clientId = '287406016902594560';
 const scopes = ['rpc', 'rpc.api', 'messages.read'];
 
-const client = new RPC.Client({ transport: 'websocket' });
+const client = new RPC.Client({ transport: 'websocket' }); // Important: "websocket" can only be used from whitelisted apps.
 
 client.on('ready', () => {
   console.log('Logged in as', client.application.name);

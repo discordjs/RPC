@@ -14,7 +14,7 @@ function subKey(event, args) {
 /**
  * @typedef {RPCClientOptions}
  * @extends {ClientOptions}
- * @prop {string} transport RPC transport. one of `ipc` or `websocket`
+ * @prop {string} transport RPC transport. one of `ipc` or `websocket`. Apps need to be whitelisted to use `websocket`.
  */
 
 /**
