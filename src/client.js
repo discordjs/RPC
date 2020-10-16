@@ -344,7 +344,7 @@ class RPCClient extends EventEmitter {
    */
 
   /**
-   * Set the voice settings for a uer, by id
+   * Set the voice settings for a user, by id
    * @param {Snowflake} id ID of the user to set
    * @param {UserVoiceSettings} settings Settings
    * @returns {Promise}
