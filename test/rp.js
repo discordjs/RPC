@@ -13,12 +13,12 @@ const client = new Client({
 });
 
 client.on('ready', async () => {
-  await client.selectTextChannel('201803114049699849');
-  console.log(await client.getChannel('201803114049699849'));
-  client.destroy()
-    .then(() => {
-      console.log('closed!');
-    });
+  await client.setActivity({
+    buttons: [
+      { label: 'B1', url: 'https://snek.dev/b1' },
+      { label: 'B2', url: 'https://snek.dev/b2' },
+    ],
+  });
 });
 
 client.login(require('./auth')).catch(console.error);
