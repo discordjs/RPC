@@ -19,7 +19,11 @@ function getIPCPath(id) {
     return `\\\\?\\pipe\\discord-ipc-${id}`;
   }
   if (process.platform === 'darwin') {
-    return `${os.tmpdir()}/discord-ipc-${id}`;
+    let tmpdir = os.tmpdir();
+    if (!tmpdir.endsWith('/T')) {
+      tmpdir += '/..';
+    }
+    return `${tmpdir}/discord-ipc-${id}`;
   }
   const { env: { XDG_RUNTIME_DIR, TMPDIR, TMP, TEMP } } = process;
   const prefix = XDG_RUNTIME_DIR || TMPDIR || TMP || TEMP || '/tmp';
