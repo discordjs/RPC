@@ -1,5 +1,6 @@
 'use strict';
 
+const os = require('os');
 const net = require('net');
 const EventEmitter = require('events');
 const fetch = require('node-fetch');
@@ -16,6 +17,9 @@ const OPCodes = {
 function getIPCPath(id) {
   if (process.platform === 'win32') {
     return `\\\\?\\pipe\\discord-ipc-${id}`;
+  }
+  if (process.platform === 'darwin') {
+    return `${os.tmpdir()}/discord-ipc-${id}`;
   }
   const { env: { XDG_RUNTIME_DIR, TMPDIR, TMP, TEMP } } = process;
   const prefix = XDG_RUNTIME_DIR || TMPDIR || TMP || TEMP || '/tmp';
