@@ -1,6 +1,7 @@
 'use strict';
 
 const os = require('os');
+const path = require('path');
 const net = require('net');
 const EventEmitter = require('events');
 const fetch = require('node-fetch');
@@ -21,7 +22,7 @@ function getIPCPath(id) {
   if (process.platform === 'darwin') {
     let tmpdir = os.tmpdir();
     if (!tmpdir.endsWith('/T')) {
-      tmpdir += '/..';
+      tmpdir = path.dirname(tmpdir);
     }
     return `${tmpdir}/discord-ipc-${id}`;
   }
