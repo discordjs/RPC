@@ -544,6 +544,12 @@ class RPCClient extends EventEmitter {
    */
 
   /**
+   * @typedef {Object} PresenceButton
+   * @prop {string} label The label for the button
+   * @prop {string} url The URL opened when the button is clicked
+   */
+
+  /**
    * @typedef {Object} PresenceData
    * @prop {DateResolvable} [endTimestamp] End of the activity
    * @prop {DateResolvable} [startTimestamp] Start of this activity
@@ -558,6 +564,7 @@ class RPCClient extends EventEmitter {
    * @prop {string} [matchSecret] The match secret
    * @prop {string} [spectateSecret] The spectate secret
    * @prop {boolean} [instance] Whether this activity is an instanced game session
+   * @prop {PresenceButton[]} [buttons] Buttons for the Presence
    */
 
   /**
@@ -570,6 +577,10 @@ class RPCClient extends EventEmitter {
     const activity = {
       instance: Boolean(data.instance),
     };
+
+    if ('buttons' in data) {
+      activity.buttons = data.buttons;
+    }
 
     const timestamps = activity.timestamps = {};
     if ('endTimestamp' in data) {
