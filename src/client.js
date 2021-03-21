@@ -8,7 +8,12 @@ const { RPCCommands, RPCEvents, RelationshipTypes } = require('./constants');
 const { pid: getPid, uuid } = require('./util');
 
 function subKey(event, args) {
-  return `${event}${JSON.stringify(args)}`;
+  let clonedArgs = {};
+  Object.assign(clonedArgs, args)
+  if (clonedArgs.hasOwnProperty("message")) {
+    delete clonedArgs.message;
+  }
+  return `${event}${JSON.stringify(clonedArgs)}`;
 }
 
 /**
@@ -191,7 +196,7 @@ class RPCClient extends EventEmitter {
       }
       this._expecting.delete(message.nonce);
     } else {
-      const subid = subKey(message.evt, message.args);
+      const subid = subKey(message.evt, message.data);
       if (!this._subscriptions.has(subid)) {
         return;
       }
