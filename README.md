@@ -35,3 +35,36 @@ client.on('ready', () => {
 // Log in to RPC with client id
 client.login({ clientId, scopes });
 ```
+
+### __Local__ Example
+
+```javascript
+const RPC = require("discord-rpc")
+const client = new RPC.Client({ transport: "ipc" })
+const buttons = [{ label: 'label', url: 'url'}, { label: 'label2', url: 'url2'}]
+
+async function setActivity() {
+  var start=new Date();
+  start.setTime(start.getTime() + 15e3);
+  var activity = {
+    details: "details",
+    state: "state",
+    startTimestamp: new Date(),
+    endTimestamp: start,
+    largeImageKey: "largeImageKey",
+    largeImageText: "largeImageText",
+    buttons: buttons,
+    instance: false, //or true
+  }
+  client.clearActivity()
+  client.setActivity(activity);
+}
+client.on('ready', () => {
+  console.log('Authed for user', client.user.username);
+  setActivity1()
+  setInterval(() => {
+    setActivity1();
+  },15e3); //every 15 seconds
+})
+
+rpc.login({clientId: '287406016902594560'}).catch(console.error);```
