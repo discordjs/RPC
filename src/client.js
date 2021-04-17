@@ -431,7 +431,7 @@ class RPCClient extends EventEmitter {
         volume: args.output.volume,
       } : undefined,
       mode: args.mode ? {
-        mode: args.mode.type,
+        type: args.mode.type,
         auto_threshold: args.mode.autoThreshold,
         threshold: args.mode.threshold,
         shortcut: args.mode.shortcut,
