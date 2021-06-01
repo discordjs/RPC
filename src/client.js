@@ -205,7 +205,7 @@ class RPCClient extends EventEmitter {
    * @returns {Promise}
    * @private
    */
-  async authorize({ scopes, clientSecret, rpcToken, redirectUri } = {}) {
+  async authorize({ scopes, clientSecret, rpcToken, redirectUri, prompt } = {}) {
     if (clientSecret && rpcToken === true) {
       const body = await this.fetch('POST', '/oauth2/token/rpc', {
         data: new URLSearchParams({
@@ -219,6 +219,7 @@ class RPCClient extends EventEmitter {
     const { code } = await this.request('AUTHORIZE', {
       scopes,
       client_id: this.clientId,
+      prompt,
       rpc_token: rpcToken,
     });
 
