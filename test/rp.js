@@ -12,8 +12,8 @@ const client = new Client({
   transport: 'ipc',
 });
 
-client.on('VOICE_CHANNEL_SELECT', ({ channel_id }) => {
-  client.subscribe('VOICE_STATE_UPDATE', { channel_id });
+client.on('VOICE_CHANNEL_SELECT', (args) => {
+  client.subscribe('VOICE_STATE_UPDATE', { channel_id: args.channel_id });
 });
 
 client.on('VOICE_STATE_UPDATE', (args) => {
