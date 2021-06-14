@@ -85,13 +85,6 @@ class RPCClient extends EventEmitter {
      */
     this._expecting = new Map();
 
-    /**
-     * Map of current subscriptions
-     * @type {Map}
-     * @private
-     */
-    this._subscriptions = new Map();
-
     this._connectPromise = undefined;
   }
 
@@ -191,11 +184,7 @@ class RPCClient extends EventEmitter {
       }
       this._expecting.delete(message.nonce);
     } else {
-      const subid = subKey(message.evt, message.args);
-      if (!this._subscriptions.has(subid)) {
-        return;
-      }
-      this._subscriptions.get(subid)(message.data);
+      this.emit(message.evt, message.data);
     }
   }
 
@@ -650,22 +639,13 @@ class RPCClient extends EventEmitter {
    * Subscribe to an event
    * @param {string} event Name of event e.g. `MESSAGE_CREATE`
    * @param {Object} [args] Args for event e.g. `{ channel_id: '1234' }`
-   * @param {Function} callback Callback when an event for the subscription is triggered
    * @returns {Promise<Object>}
    */
-  subscribe(event, args, callback) {
-    if (!callback && typeof args === 'function') {
-      callback = args;
-      args = undefined;
-    }
-    return this.request(RPCCommands.SUBSCRIBE, args, event).then(() => {
-      const subid = subKey(event, args);
-      this._subscriptions.set(subid, callback);
-      return {
-        unsubscribe: () => this.request(RPCCommands.UNSUBSCRIBE, args, event)
-          .then(() => this._subscriptions.delete(subid)),
-      };
-    });
+  async subscribe(event, args) {
+    await this.request(RPCCommands.SUBSCRIBE, args, event);
+    return {
+      unsubscribe: () => this.request(RPCCommands.UNSUBSCRIBE, args, event),
+    };
   }
 
   /**

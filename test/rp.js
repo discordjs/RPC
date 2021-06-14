@@ -12,13 +12,16 @@ const client = new Client({
   transport: 'ipc',
 });
 
+client.on('VOICE_CHANNEL_SELECT', ({ channel_id }) => {
+  client.subscribe('VOICE_STATE_UPDATE', { channel_id });
+});
+
+client.on('VOICE_STATE_UPDATE', (args) => {
+  console.log(args);
+});
+
 client.on('ready', async () => {
-  await client.setActivity({
-    buttons: [
-      { label: 'B1', url: 'https://snek.dev/b1' },
-      { label: 'B2', url: 'https://snek.dev/b2' },
-    ],
-  });
+  client.subscribe('VOICE_CHANNEL_SELECT');
 });
 
 client.login(require('./auth')).catch(console.error);
