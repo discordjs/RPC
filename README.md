@@ -13,7 +13,7 @@
 
 # Discord.js RPC Extension
 
-### [Documentation](https://discord.js.org/#/docs/rpc/)
+### [Documentation](https://discord.js.org/#/docs/rpc/master/general/welcome)
 
 ### [Rich Presence Example](https://github.com/discordjs/RPC/blob/master/example)
 
