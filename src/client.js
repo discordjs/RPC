@@ -4,7 +4,7 @@ const EventEmitter = require('events');
 const { setTimeout, clearTimeout } = require('timers');
 const fetch = require('node-fetch');
 const transports = require('./transports');
-const { RPCCommands, RPCEvents, RelationshipTypes } = require('./constants');
+const { RPCCommands, RPCEvents, RelationshipTypes, ActivityTypes } = require('./constants');
 const { pid: getPid, uuid } = require('./util');
 
 function subKey(event, args) {
@@ -472,6 +472,7 @@ class RPCClient extends EventEmitter {
     let assets;
     let party;
     let secrets;
+    let type = ActivityTypes.PLAYING;
     if (args.startTimestamp || args.endTimestamp) {
       timestamps = {
         start: args.startTimestamp,
@@ -514,11 +515,15 @@ class RPCClient extends EventEmitter {
         spectate: args.spectateSecret,
       };
     }
+    if (args.type) {
+      type = args.type;
+    }
 
     return this.request(RPCCommands.SET_ACTIVITY, {
       pid,
       activity: {
         state: args.state,
+        type: type,
         details: args.details,
         timestamps,
         assets,
