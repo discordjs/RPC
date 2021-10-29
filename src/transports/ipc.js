@@ -34,22 +34,28 @@ function makeSocket(path) {
 
 async function getIPC() {
   // Attempt a connection the usual way first.
-  const connect = async snap => {
-    for (let i = 0; i < 10; i++) {
+  const connect = async (snap) => {
+    for (let i = 0; i < 10; i += 1) {
       try {
+        // eslint-disable-next-line no-await-in-loop
         return await makeSocket(getIPCPath(i, snap));
       } catch (_) {
         // Something went wrong with this connection. Go to the next iteration.
       }
     }
+    return undefined;
   };
   let res = await connect(false);
-  if (res) return res;
+  if (res) {
+    return res;
+  }
 
   // Handle snap connections.
-  if (process.platform === "linux") {
+  if (process.platform === 'linux') {
     res = await connect(true);
-    if (res) return res;
+    if (res) {
+      return res;
+    }
   }
 
   // If all else fails, throw an error.
