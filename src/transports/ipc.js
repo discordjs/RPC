@@ -48,7 +48,7 @@ async function getIPC() {
 
   // Handle snap connections.
   if (process.platform === "linux") {
-    if (res = await connect(true)) return res
+    if (res = await connect(true)) return res;
   }
 
   // If all else fails, throw an error.
