@@ -271,6 +271,15 @@ class RPCClient extends EventEmitter {
   getChannel(id, timeout) {
     return this.request(RPCCommands.GET_CHANNEL, { channel_id: id, timeout });
   }
+  
+  /**
+   * Get selected voice channel
+   * @param {number} [timeout] Timeout request
+   * @returns {Promise<Collection<Snowflake, Guild>>}
+   */
+   getSelectedVoiceChannel(timeout) {
+    return this.request(RPCCommands.GET_SELECTED_VOICE_CHANNEL, { timeout });
+  }
 
   /**
    * Get all channels
