@@ -117,12 +117,13 @@ class RPCClient extends EventEmitter {
 
   /**
    * @typedef {RPCLoginOptions}
-   * @param {string} clientId Client ID
+   * @param {Snowflake} clientId Client ID
    * @param {string} [clientSecret] Client secret
    * @param {string} [accessToken] Access token
    * @param {string} [rpcToken] RPC token
-   * @param {string} [tokenEndpoint] Token endpoint
+   * @param {string} [redirectUri] OAuth2 redirect endpoint
    * @param {string[]} [scopes] Scopes to authorize with
+   * @param {string} [prompt] Authorization flow; `none` authorizes once, `consent` prompts for reapproval
    */
 
   /**
