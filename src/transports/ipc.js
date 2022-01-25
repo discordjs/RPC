@@ -13,31 +13,53 @@ const OPCodes = {
   PONG: 4,
 };
 
-function getIPCPath(id) {
+function getIPCPath(id, snap) {
   if (process.platform === 'win32') {
     return `\\\\?\\pipe\\discord-ipc-${id}`;
   }
   const { env: { XDG_RUNTIME_DIR, TMPDIR, TMP, TEMP } } = process;
   const prefix = XDG_RUNTIME_DIR || TMPDIR || TMP || TEMP || '/tmp';
-  return `${prefix.replace(/\/$/, '')}/discord-ipc-${id}`;
+  return `${prefix.replace(/\/$/, '')}${snap ? '/snap.discord' : ''}/discord-ipc-${id}`;
 }
 
-function getIPC(id = 0) {
-  return new Promise((resolve, reject) => {
-    const path = getIPCPath(id);
-    const onerror = () => {
-      if (id < 10) {
-        resolve(getIPC(id + 1));
-      } else {
-        reject(new Error('Could not connect'));
-      }
-    };
+function makeSocket(path) {
+  return new Promise((res, rej) => {
     const sock = net.createConnection(path, () => {
-      sock.removeListener('error', onerror);
-      resolve(sock);
+      sock.removeListener('error', rej);
+      res(sock);
     });
-    sock.once('error', onerror);
+    sock.once('error', rej);
   });
+}
+
+async function getIPC() {
+  // Attempt a connection the usual way first.
+  const connect = async (snap) => {
+    for (let i = 0; i < 10; i += 1) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        return await makeSocket(getIPCPath(i, snap));
+      } catch {
+        // Something went wrong with this connection. Go to the next iteration.
+      }
+    }
+    return undefined;
+  };
+  let res = await connect(false);
+  if (res) {
+    return res;
+  }
+
+  // Check for snap connections
+  if (process.platform === 'linux') {
+    res = await connect(true);
+    if (res) {
+      return res;
+    }
+  }
+
+  // If all else fails, throw an error.
+  throw new Error('Could not connect');
 }
 
 async function findEndpoint(tries = 0) {
