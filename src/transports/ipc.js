@@ -39,7 +39,7 @@ async function getIPC() {
       try {
         // eslint-disable-next-line no-await-in-loop
         return await makeSocket(getIPCPath(i, snap));
-      } catch (_) {
+      } catch {
         // Something went wrong with this connection. Go to the next iteration.
       }
     }
