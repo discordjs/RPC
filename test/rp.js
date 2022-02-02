@@ -21,12 +21,7 @@ client.on('VOICE_STATE_UPDATE', (args) => {
 });
 
 client.on('ready', async () => {
-  await client.setActivity({
-    buttons: [
-      { label: 'B1', url: 'https://snek.dev/b1' },
-      { label: 'B2', url: 'https://snek.dev/b2' },
-    ],
-  });
+  client.subscribe('VOICE_CHANNEL_SELECT');
 });
 
 client.login(require('./auth')).catch(console.error);
