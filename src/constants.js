@@ -176,3 +176,14 @@ exports.RelationshipTypes = {
   PENDING_OUTGOING: 4,
   IMPLICIT: 5,
 };
+
+exports.ChannelTypes = {
+  GUILD_TEXT: 0,
+  DM: 1,
+  GUILD_VOICE: 2,
+  GROUP_DM: 3,
+  GUILD_CATEGORY: 4,
+  GUILD_NEWS: 5,
+  GUILD_STORE: 6,
+  GUILD_STAGE_VOICE: 13,
+};

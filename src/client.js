@@ -7,9 +7,7 @@ const transports = require('./transports');
 const { RPCCommands, RPCEvents, RelationshipTypes } = require('./constants');
 const { pid: getPid, uuid } = require('./util');
 
-function subKey(event, args) {
-  return `${event}${JSON.stringify(args)}`;
-}
+const SubscriptionManager = require('./subscriptions');
 
 /**
  * @typedef {RPCClientOptions}
@@ -87,10 +85,10 @@ class RPCClient extends EventEmitter {
 
     /**
      * Map of current subscriptions
-     * @type {Map}
+     * @type {SubscriptionManager}
      * @private
      */
-    this._subscriptions = new Map();
+    this._subscriptions = new SubscriptionManager();
 
     this._connectPromise = undefined;
   }
@@ -191,11 +189,7 @@ class RPCClient extends EventEmitter {
       }
       this._expecting.delete(message.nonce);
     } else {
-      const subid = subKey(message.evt, message.args);
-      if (!this._subscriptions.has(subid)) {
-        return;
-      }
-      this._subscriptions.get(subid)(message.data);
+      this._subscriptions.fire(message.evt, message.data);
     }
   }
 
@@ -460,14 +454,19 @@ class RPCClient extends EventEmitter {
    * @returns {Promise<Function>}
    */
   captureShortcut(callback) {
-    const subid = subKey(RPCEvents.CAPTURE_SHORTCUT_CHANGE);
-    const stop = () => {
-      this._subscriptions.delete(subid);
+    let stop = null;
+    const onShortcutChange = ({ shortcut }) => callback(shortcut, stop);
+    stop = () => {
+      this._subscriptions.deregister(
+        RPCEvents.CAPTURE_SHORTCUT_CHANGE,
+        onShortcutChange,
+      );
       return this.request(RPCCommands.CAPTURE_SHORTCUT, { action: 'STOP' });
     };
-    this._subscriptions.set(subid, ({ shortcut }) => {
-      callback(shortcut, stop);
-    });
+    this._subscriptions.register(
+      RPCEvents.CAPTURE_SHORTCUT_CHANGE,
+      onShortcutChange,
+    );
     return this.request(RPCCommands.CAPTURE_SHORTCUT, { action: 'START' })
       .then(() => stop);
   }
@@ -660,11 +659,10 @@ class RPCClient extends EventEmitter {
       args = undefined;
     }
     return this.request(RPCCommands.SUBSCRIBE, args, event).then(() => {
-      const subid = subKey(event, args);
-      this._subscriptions.set(subid, callback);
+      const deregister = this._subscriptions.register(event, args, callback);
       return {
         unsubscribe: () => this.request(RPCCommands.UNSUBSCRIBE, args, event)
-          .then(() => this._subscriptions.delete(subid)),
+          .then(() => deregister()),
       };
     });
   }
