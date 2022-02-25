@@ -21,7 +21,7 @@
 
 ```javascript
 const clientId = '287406016902594560';
-const scopes = ['rpc', 'rpc.api', 'messages.read'];
+const scopes = ['rpc', 'messages.read'];
 
 const client = new RPC.Client({ transport: 'websocket' });
 
