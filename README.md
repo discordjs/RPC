@@ -23,7 +23,7 @@
 const clientId = '287406016902594560';
 const scopes = ['rpc', 'messages.read'];
 
-const client = new RPC.Client({ transport: 'websocket' });
+const client = new RPC.Client({ transport: 'ipc' });
 
 client.on('ready', () => {
   console.log('Logged in as', client.application.name);
