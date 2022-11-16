@@ -133,7 +133,8 @@ class RPCClient extends EventEmitter {
    * @returns {Promise<RPCClient>}
    */
   async login(options = {}) {
-    let { clientId, accessToken } = options;
+    let values = Object.values(options);
+    let [clientId, accessToken] = values;
     await this.connect(clientId);
     if (!options.scopes) {
       this.emit('ready');
