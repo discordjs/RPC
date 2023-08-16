@@ -88,34 +88,34 @@ function decode(socket, callback) {
       accumulatedData.payload = accumulatedData.payload.subarray(8); // Remove opcode and length
     }
 
-    if (accumulatedData.payload.length >= accumulatedData.expectedLength) {
-      // Accumulated data has the full payload and possibly the beginning of the next payload
-      const currentPayload = accumulatedData.payload.subarray(0, accumulatedData.expectedLength);
-      const nextPayload = accumulatedData.payload.subarray(accumulatedData.expectedLength);
-
-      accumulatedData.payload = nextPayload; // Keep remainder for next payload
-
-      try {
-        callback({
-          op: accumulatedData.op,
-          data: JSON.parse(currentPayload.toString('utf8')),
-        });
-
-        // Reset for next payload
-        accumulatedData.op = undefined;
-        accumulatedData.expectedLength = 0;
-      } catch (err) {
-        // Full payload has been received, but is not valid JSON
-        console.error('Error parsing payload:', err);
-
-        // Reset for next payload
-        accumulatedData.op = undefined;
-        accumulatedData.expectedLength = 0;
-
-        break;
-      }
-    } else {
+    if (accumulatedData.payload.length < accumulatedData.expectedLength) {
       // Full payload hasn't been received yet, wait for more data
+      break;
+    }
+
+    // Accumulated data has the full payload and possibly the beginning of the next payload
+    const currentPayload = accumulatedData.payload.subarray(0, accumulatedData.expectedLength);
+    const nextPayload = accumulatedData.payload.subarray(accumulatedData.expectedLength);
+
+    accumulatedData.payload = nextPayload; // Keep remainder for next payload
+
+    try {
+      callback({
+        op: accumulatedData.op,
+        data: JSON.parse(currentPayload.toString('utf8')),
+      });
+
+      // Reset for next payload
+      accumulatedData.op = undefined;
+      accumulatedData.expectedLength = 0;
+    } catch (err) {
+      // Full payload has been received, but is not valid JSON
+      console.error('Error parsing payload:', err);
+
+      // Reset for next payload
+      accumulatedData.op = undefined;
+      accumulatedData.expectedLength = 0;
+
       break;
     }
   }
