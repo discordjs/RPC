@@ -110,7 +110,7 @@ function decode(socket, callback) {
       accumulatedData.expectedLength = 0;
     } catch (err) {
       // Full payload has been received, but is not valid JSON
-      console.error('Error parsing payload:', err);
+      callback({ error: new Error('Received payload with malformed JSON', { cause: err }) });
 
       // Reset for next payload
       accumulatedData.op = undefined;
@@ -141,7 +141,11 @@ class IPCTransport extends EventEmitter {
     }));
     socket.pause();
     socket.on('readable', () => {
-      decode(socket, ({ op, data }) => {
+      decode(socket, ({ error, op, data }) => {
+        if (error) {
+          this.client.emit('error', error);
+          return;
+        }
         switch (op) {
           case OPCodes.PING:
             this.send(data, OPCodes.PONG);
