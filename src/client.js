@@ -360,6 +360,13 @@ class RPCClient extends EventEmitter {
   selectVoiceChannel(id, { timeout, force = false } = {}) {
     return this.request(RPCCommands.SELECT_VOICE_CHANNEL, { channel_id: id, timeout, force });
   }
+  /**
+   * Gets users currently selected voice channel (if connected to one), else null
+   * * @returns {Promise}
+   */
+  getSelectedVoiceChannel() {
+    return this.request(RPCCommands.GET_SELECTED_VOICE_CHANNEL, {});
+  }
 
   /**
    * Move the user to a text channel
