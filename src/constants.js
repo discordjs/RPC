@@ -176,3 +176,10 @@ exports.RelationshipTypes = {
   PENDING_OUTGOING: 4,
   IMPLICIT: 5,
 };
+
+exports.ActivityTypes = {
+  PLAYING: 0,
+  LISTENING: 2,
+  WATCHING: 3,
+  COMPETING: 5,
+}
