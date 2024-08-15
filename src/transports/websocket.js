@@ -39,6 +39,7 @@ class WebSocketTransport extends EventEmitter {
     if (!event.wasClean) {
       return;
     }
+    this.ws = undefined;
     this.emit('close', event);
   }
 

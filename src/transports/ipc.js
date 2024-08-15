@@ -148,14 +148,17 @@ class IPCTransport extends EventEmitter {
   }
 
   onClose(e) {
+    this.socket = undefined;
     this.emit('close', e);
   }
 
   send(data, op = OPCodes.FRAME) {
-    this.socket.write(encode(op, data));
+    this.socket?.write(encode(op, data));
   }
 
   async close() {
+    if (!this.socket) return new Promise((resolve) => void resolve());
+    
     return new Promise((r) => {
       this.once('close', r);
       this.send({}, OPCodes.CLOSE);
