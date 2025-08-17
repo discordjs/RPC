@@ -29,7 +29,9 @@
     "prepublishOnly": "npm run lint && npm run build:browser"
   },
   "dependencies": {
+    "bufferutil": "^4.0.9",
     "node-fetch": "^2.6.1",
+    "utf-8-validate": "^5.0.10",
     "ws": "^7.3.1"
   },
   "optionalDependencies": {
