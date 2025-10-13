@@ -518,6 +518,8 @@ class RPCClient extends EventEmitter {
     return this.request(RPCCommands.SET_ACTIVITY, {
       pid,
       activity: {
+        type: args.type,
+        name: args.name,
         state: args.state,
         details: args.details,
         timestamps,
