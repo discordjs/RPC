@@ -501,7 +501,7 @@ class RPCClient extends EventEmitter {
         large_url: args.largeImageURL,
         small_image: args.smallImageKey,
         small_text: args.smallImageText,
-		    small_url: args.smallImageURL,
+        small_url: args.smallImageURL,
       };
     }
     if (args.partySize || args.partyId || args.partyMax) {
