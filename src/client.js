@@ -492,13 +492,16 @@ class RPCClient extends EventEmitter {
     }
     if (
       args.largeImageKey || args.largeImageText
-      || args.smallImageKey || args.smallImageText
+      || args.smallImageKey || args.smallImageText || 
+	  args.largeImageURL || args.smallImageURL
     ) {
       assets = {
         large_image: args.largeImageKey,
         large_text: args.largeImageText,
+        large_url: args.largeImageURL,
         small_image: args.smallImageKey,
         small_text: args.smallImageText,
+        small_url: args.smallImageURL,
       };
     }
     if (args.partySize || args.partyId || args.partyMax) {
@@ -518,6 +521,7 @@ class RPCClient extends EventEmitter {
     return this.request(RPCCommands.SET_ACTIVITY, {
       pid,
       activity: {
+		    type: args.type,
         state: args.state,
         details: args.details,
         timestamps,
